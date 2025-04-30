@@ -10,11 +10,11 @@ const navLinks = [
     { name: 'Contact', href: '/contact' },
 ];
 
-export default function Navbar() {
+export default function NavbarFixed() {
     const pathname = usePathname();
 
     return (
-        <div className="w-full bg-transparent">
+        <nav className="fixed top-0 w-full bg-transparent z-50">
             <div className="mx-auto px-6 py-4 grid grid-cols-3 items-center">
                 {/* Logo */}
                 <div className="flex items-center">
@@ -52,6 +52,6 @@ export default function Navbar() {
                     </Link>
                 </div>
             </div>
-        </div>
+        </nav>
     );
 }

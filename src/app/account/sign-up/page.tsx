@@ -1,14 +1,14 @@
 "use client";
 
 import React from 'react';
-import { signIn } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import router from 'next/router';
 import Navbar from '@/component/NavbarFixed';
 
+
 const validationSchema = Yup.object({
+    name: Yup.string().required("Name is required"),
     email: Yup.string()
         .email("Invalid email format")
         .required("Email is required"),
@@ -23,24 +23,38 @@ const validationSchema = Yup.object({
             "Password must contain at least one special character"
         )
         .required("Password is required"),
+    confirmPassword: Yup.string()
+        .oneOf([Yup.ref("password")], "Passwords must match")
+        .required("Confirm Password is required"),
 });
 
-async function handleSignIn(values: any) {
-    const response = await signIn("credentials", {
-        email: values.email,
-        password: values.password,
-        redirect: false,
-    });
 
-    if (response?.error) {
-        console.log("Invalid email or password");
-    } else {
-        console.log("Success?");
-    }
-}
-
-const SignInPage = () => {
+const SignUpPage = () => {
     const router = useRouter();
+
+    const handleSignUp = async (values: any, { setSubmitting, setErrors }: any) => {
+        try {
+            const res = await fetch('/api/auth/sign-up', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(values),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setErrors({ email: data.error });
+            } else {
+                console.log("User registered", data);
+                router.push('/account/sign-in');
+            }
+        } catch (err) {
+            console.error("Sign-up error:", err);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     return (
         <div className="bg-[url('/img/bg-main.png')] h-screen bg-cover bg-center flex items-center justify-start select-none">
             <div className="h-[75%] w-[75%] mx-auto">
@@ -48,21 +62,33 @@ const SignInPage = () => {
                     <div className="hidden lg:flex bg-[url('/img/bg-r-section.jpg')] bg-right bg-cover items-center justify-center rounded-tl-[120px] rounded-bl-lg">
                         <h1 className="text-9xl text-center">B’Dazzle Cafe</h1>
                     </div>
-                    <div className="bg-brown-primary flex-block lg:rounded-br-[120px] lg:rounded-tr-lg p-6 lg:p-10 space-y-4 text-white overflow-auto hide-scrollbar" >
-                        <h2 className="font-bold text-4xl">Sign in</h2>
-                        <p>Don't have an account? <span onClick={() => router.push('/account/sign-up')} className="underline cursor-pointer">Create now</span></p>
+                    <div className="bg-brown-primary flex-block lg:rounded-br-[120px] lg:rounded-tr-lg p-6 lg:p-10 space-y-4 text-white overflow-auto hide-scrollbar">
+                        <h2 className="font-bold text-4xl">Sign up</h2>
+                        <p>Already have an account? <span onClick={() => router.push('/account/sign-in')} className="underline cursor-pointer">Log in now</span></p>
 
                         <Formik
                             initialValues={{
-                                username: "",
-                                email: "john@example.com",
-                                password: "Password123!",
+                                name: "",
+                                email: "",
+                                password: "",
+                                confirmPassword: "",
                             }}
                             validationSchema={validationSchema}
-                            onSubmit={handleSignIn}
+                            onSubmit={(values, actions) => handleSignUp(values, actions)}
                         >
                             {({ }) => (
                                 <Form className="space-y-4">
+                                    <div>
+                                        <label htmlFor="name" className="text-sm">Name</label>
+                                        <Field
+                                            name="name"
+                                            type="text"
+                                            placeholder="Name"
+                                            className="bg-white text-black pl-2 w-full h-10 rounded-lg placeholder:text-[#4A5568]"
+                                        />
+                                        <ErrorMessage name="name" component="div" className="text-red-400 text-xs" />
+                                    </div>
+
                                     <div>
                                         <label htmlFor="email" className="text-sm">Email</label>
                                         <Field
@@ -85,6 +111,17 @@ const SignInPage = () => {
                                         <ErrorMessage name="password" component="div" className="text-red-400 text-xs" />
                                     </div>
 
+                                    <div>
+                                        <label htmlFor="confirmPassword" className="text-sm">Confirm Password</label>
+                                        <Field
+                                            name="confirmPassword"
+                                            type="password"
+                                            placeholder="Confirm Password"
+                                            className="bg-white text-black pl-2 w-full h-10 rounded-lg placeholder:text-[#4A5568]"
+                                        />
+                                        <ErrorMessage name="confirmPassword" component="div" className="text-red-400 text-xs" />
+                                    </div>
+
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <Field
@@ -100,11 +137,12 @@ const SignInPage = () => {
                                     </div>
 
                                     <button type="submit" className="bg-white font-bold text-brown-primary w-full h-12 rounded-lg">
-                                        Sign In
+                                        Sign Up
                                     </button>
                                 </Form>
                             )}
                         </Formik>
+
                         <div className="flex items-center justify-center my-4">
                             <div className="flex-grow border-t"></div>
                             <span className="mx-4 text-sm text-gray-200">OR</span>
@@ -127,4 +165,4 @@ const SignInPage = () => {
     );
 };
 
-export default SignInPage;
+export default SignUpPage;
