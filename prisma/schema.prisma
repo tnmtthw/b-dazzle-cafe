@@ -18,9 +18,10 @@ model User {
 
 model Product {
   id              String   @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  image           String
   name            String
   description     String
   price           Int
-  sold            Int
+  sold            Int?     @default(0)
   createdAt       DateTime @default(now())
 }
