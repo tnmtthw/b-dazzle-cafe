@@ -11,7 +11,7 @@ export const { handlers, signIn, signOut, auth,  } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const res = await fetch("http://localhost:3000/api/auth/sign-in", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/sign-in`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -19,23 +19,27 @@ export const { handlers, signIn, signOut, auth,  } = NextAuth({
             password: credentials?.password,
           }),
         });
-
+      
         if (!res.ok) return null;
-
+      
         const user = await res.json();
-
+      
+        if (user.role === "Unverified") {
+          throw new Error("Unverified");
+        }
+        
         if (user) {
           return {
             id: user.userId,
             name: user.name,
-            email: credentials.email, 
+            email: credentials.email,
             role: user.role,
             asd: user.asd,
           };
         }
-
+      
         return null;
-      },
+      }      
     }),
   ],
   pages: {

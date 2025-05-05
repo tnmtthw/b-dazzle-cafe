@@ -19,7 +19,7 @@ export default function Navbar() {
   const { data: session } = useSession();
 
   return (
-    <header className="w-full px-6 py-4 bg-transparent">
+    <header className="w-full px-6 py-4 bg-brown-primary">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         {/* Logo */}
         <Link href="/">
@@ -27,7 +27,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex space-x-8">
+        <nav className="hidden md:flex space-x-8 ">
           {navLinks.map((link) => (
             <Link
               key={link.name}
