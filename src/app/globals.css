@@ -24,7 +24,8 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* font-family: Arial, Helvetica, sans-serif; */
+  font-family: inherit;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
@@ -34,4 +35,17 @@ body {
 .hide-scrollbar {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+/* ✅ Add this block at the bottom */
+@layer utilities {
+  .font-playfair {
+    font-family: var(--font-playfair), serif;
+  }
+  .custom-hero-bg {
+    background-image: url('/img/bg-main.png');
+    background-size: 1200px auto; /* or 80% 100%, etc. */
+    background-position: center;
+    background-repeat: no-repeat;
+  }
 }

@@ -3,6 +3,16 @@ import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import "./globals.css";
 import Navbar from '@/component/NavbarFixed';
+import { Playfair_Display } from "next/font/google"; // ✅ Add this line
+
+// ✅ Configure the font
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '700'],
+  variable: '--font-playfair', // ✅ expose as CSS variable
+});
+
 
 export const metadata: Metadata = {
   title: "B'Dazzle Cafe",
@@ -14,11 +24,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   const session = await auth();
 
   return (
-    <html lang="en">
+    <html lang="en" className={playfair.className}> {/* ✅ Apply font globally */}
       <SessionProvider session={session}>
         <body className="select-none">
           {/* <Navbar /> */}

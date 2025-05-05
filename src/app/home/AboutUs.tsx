@@ -12,7 +12,7 @@ const AboutUs = () => {
                     <p>Lorem ipsum dolor sit amet consectetur. Scelerisque urna vel sit dolor fringilla volutpat lectus amet. Integer sed pretium odio lectus at malesuada sed eget nunc. Viverra malesuada viverra id vel tortor dui adipiscing.</p>
                     <p>Lorem ipsum dolor sit amet consectetur. Scelerisque urna vel sit dolor fringilla volutpat lectus amet. Integer sed pretium odio lectus at malesuada sed eget nunc. Viverra malesuada viverra id vel tortor dui adipiscing.</p>
                 </div>
-                <div className="h-[70%] w-[70%]">
+                <div className="h-[60%] w-[60%]">
                     <img className="object-contain h-52 w-52" src="/img/aboutus.jpg" />
                 </div>
             </div>
