@@ -1,14 +1,14 @@
 import { auth } from "@/auth";
 
 export default auth((req) => {
-  const privateRoutes = ["/account/details", "/user/profile"];
+  const privateRoutes = ["/profile", "/user/profile"];
 
   const isLoggedIn = !!req.auth;
   const user = req.auth?.user;
 
   const url = "http://localhost:3000";
   const isRootRoute = req.nextUrl.pathname === "/";
-  const isAuthRoute = req.nextUrl.pathname.includes("/account/sign-in");
+  const isAuthRoute = req.nextUrl.pathname.includes("/account/");
   const isPrivateRoute = privateRoutes.includes(req.nextUrl.pathname);
   const isAdminRoute = req.nextUrl.pathname.includes("/admin");
 

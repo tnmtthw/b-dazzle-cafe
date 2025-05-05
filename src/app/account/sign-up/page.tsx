@@ -4,8 +4,6 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import Navbar from '@/component/NavbarFixed';
-
 
 const validationSchema = Yup.object({
     name: Yup.string().required("Name is required"),

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import "./globals.css";
-import Navbar from '@/component/NavbarFixed';
+import { Navbar } from "@/component/Navbar";
 import { Playfair_Display } from "next/font/google"; // ✅ Add this line
 
 // ✅ Configure the font
@@ -27,10 +27,10 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang="en" className={playfair.className}> {/* ✅ Apply font globally */}
+    <html lang="en" className={playfair.className}>
       <SessionProvider session={session}>
         <body className="select-none">
-          {/* <Navbar /> */}
+          <Navbar />
           <main>{children}</main>
         </body>
       </SessionProvider>

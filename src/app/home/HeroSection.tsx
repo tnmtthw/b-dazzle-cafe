@@ -1,7 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import Navbar from '@/component/navbar';
 
 const HeroSection = () => {
   const description =
@@ -17,8 +16,6 @@ const HeroSection = () => {
         className=" z-[-1]"
         priority
       />
-
-      <Navbar />
       <div className="content flex pl-32 items-center justify-start px-10 py-20">
         <div className="select-none">
           <h1 className="font-playfair text-8xl font-bold mb-4 flex flex-col">

@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import router from 'next/router';
-import Navbar from '@/component/NavbarFixed';
 
 const validationSchema = Yup.object({
     email: Yup.string()
@@ -25,21 +24,22 @@ const validationSchema = Yup.object({
         .required("Password is required"),
 });
 
-async function handleSignIn(values: any) {
-    const response = await signIn("credentials", {
-        email: values.email,
-        password: values.password,
-        redirect: false,
-    });
-
-    if (response?.error) {
-        console.log("Invalid email or password");
-    } else {
-        console.log("Success?");
-    }
-}
 
 const SignInPage = () => {
+    async function handleSignIn(values: any) {
+        const response = await signIn("credentials", {
+            email: values.email,
+            password: values.password,
+            redirect: false,
+        });
+
+        if (response?.error) {
+            console.log("Invalid email or password");
+        } else {
+            router.replace("");
+        }
+    }
+
     const router = useRouter();
     return (
         <div className="bg-[url('/img/bg-main.png')] h-screen bg-cover bg-center flex items-center justify-start select-none">
