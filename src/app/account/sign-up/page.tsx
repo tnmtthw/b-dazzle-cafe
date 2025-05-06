@@ -66,10 +66,10 @@ const SignUpPage = () => {
 
                         <Formik
                             initialValues={{
-                                name: "",
-                                email: "",
-                                password: "",
-                                confirmPassword: "",
+                                name: "Fortune Tamares",
+                                email: "fortunetamares@gmail.com",
+                                password: "Password@1219",
+                                confirmPassword: "Password@1219",
                             }}
                             validationSchema={validationSchema}
                             onSubmit={(values, actions) => handleSignUp(values, actions)}

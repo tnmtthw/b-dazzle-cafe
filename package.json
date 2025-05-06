@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "email": "email dev --dir src/emails",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -13,13 +14,18 @@
     "@neondatabase/serverless": "^1.0.0",
     "@prisma/client": "^6.7.0",
     "@prisma/extension-accelerate": "^1.3.0",
+    "@react-email/components": "^0.0.38",
+    "@types/nodemailer": "^6.4.17",
     "bcryptjs": "^3.0.2",
     "formik": "^2.4.6",
     "lucide-react": "^0.506.0",
     "next": "^15.3.1",
     "next-auth": "^5.0.0-beta.27",
+    "nodemailer": "^6.10.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-email": "^4.0.11",
+    "react-hot-toast": "^2.5.2",
     "swr": "^2.3.3",
     "vercel": "^41.7.0",
     "yup": "^1.6.1"

@@ -8,6 +8,7 @@
 @theme inline {
   --color-yellow-primary : #F9C06A;
   --color-brown-primary : #6F4E37;
+  --color-brown-primary-hover: #8B5E3C;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);

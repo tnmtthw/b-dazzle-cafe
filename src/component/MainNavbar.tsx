@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, ShoppingCart, X } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 
 const navLinks = [
@@ -54,6 +54,9 @@ export default function Navbar() {
               >
                 Sign Out
               </button>
+              <Link href="/cart">
+                <ShoppingCart color='white' />
+              </Link>
             </>
           ) : (
             <Link
