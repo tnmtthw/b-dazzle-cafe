@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import "./globals.css";
-import { Navbar } from "@/component/Navbar";
-import { Playfair_Display } from "next/font/google"; // ✅ Add this line
+import { Navbar } from "@/component/asd";
+import { Playfair_Display } from "next/font/google";
 
 // ✅ Configure the font
 const playfair = Playfair_Display({
   subsets: ['latin'],
   display: 'swap',
   weight: ['400', '700'],
-  variable: '--font-playfair', // ✅ expose as CSS variable
+  variable: '--font-playfair',
 });
 
 
