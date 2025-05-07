@@ -27,14 +27,14 @@ export const SignupConfirmationEmail = ({
     // Ensure the email is URI encoded to handle special characters
     const encodedEmail = encodeURIComponent(email);
     
-    // Build the full verification URL
+    // Build the full verification URL with dynamic base URL
     const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/account/verify/${encodedEmail}`;
     
     return (
         <Html>
             <Head />
             <Preview>
-                Welcome to B'Dazzle Cafe! Please verify your account to start your coffee journey.
+                Verify your B'Dazzle Cafe account to get started
             </Preview>
             <Body style={main}>
                 <Container style={container}>
@@ -50,35 +50,28 @@ export const SignupConfirmationEmail = ({
                         <Heading style={headerText}>Welcome to B'Dazzle Cafe!</Heading>
                     </Section>
                     
-                    {/* Main content */}
+                    {/* Main content - keeping text-to-image ratio high (80:20) */}
                     <Section style={contentContainer}>
                         <Text style={greeting}>Hello {name},</Text>
                         
                         <Text style={paragraph}>
-                            Thank you for joining our community of coffee enthusiasts! We're excited to have you with us.
+                            Thank you for creating your account with B'Dazzle Cafe. We're excited to have you join our community!
                         </Text>
                         
                         <Text style={paragraph}>
-                            Before you can place your first order and experience our delicious coffees, please verify your email address by clicking the button below.
+                            Please verify your email address to activate your account and enjoy our delicious coffee offerings.
                         </Text>
                         
-                        {/* Verification button */}
+                        {/* Clean, simple verification button */}
                         <Section style={buttonContainer}>
                             <Link href={verificationUrl} style={button}>
                                 Verify My Email
                             </Link>
                         </Section>
                         
-                        {/* Security note */}
-                        <Section style={noteContainer}>
-                            <Text style={noteText}>
-                                For your security, this verification link will expire in 24 hours. If you did not create an account with B'Dazzle Cafe, please disregard this email.
-                            </Text>
-                        </Section>
-                        
-                        {/* Fallback text link */}
+                        {/* Fallback text link - essential for deliverability */}
                         <Text style={paragraph}>
-                            If the button doesn't work, copy and paste this link into your browser:
+                            If the button doesn't work, please copy and paste this link into your browser:
                         </Text>
                         <Text style={linkContainer}>
                             <Link href={verificationUrl} style={textLink}>
@@ -86,12 +79,9 @@ export const SignupConfirmationEmail = ({
                             </Link>
                         </Text>
                         
-                        {/* Coffee quote */}
-                        <Section style={quoteContainer}>
-                            <Text style={quoteText}>
-                                "Life begins after coffee."
-                            </Text>
-                        </Section>
+                        <Text style={paragraph}>
+                            This verification link will expire in 24 hours. If you didn't create an account with us, you can safely ignore this email.
+                        </Text>
                         
                         <Text style={paragraph}>
                             We look forward to serving you soon!
@@ -102,18 +92,18 @@ export const SignupConfirmationEmail = ({
                         </Text>
                     </Section>
                     
-                    {/* Footer */}
+                    {/* Footer with required physical address and unsubscribe link */}
                     <Section style={footerContainer}>
                         <Text style={footerText}>
                             © 2025 B'Dazzle Cafe. All rights reserved.
                         </Text>
                         <Text style={footerText}>
-                            Manila, Philippines
+                            123 Coffee Street, Manila, Philippines
                         </Text>
                         <Text style={footerLinks}>
                             <Link href="#" style={footerLink}>Privacy Policy</Link> • 
                             <Link href="#" style={footerLink}> Terms of Service</Link> •
-                            <Link href="#" style={footerLink}> Contact Us</Link>
+                            <Link href="#" style={footerLink}> Unsubscribe</Link>
                         </Text>
                     </Section>
                 </Container>
@@ -124,10 +114,10 @@ export const SignupConfirmationEmail = ({
 
 export default SignupConfirmationEmail;
 
-// Main styles
+// Main styles - keeping simple with web-safe fonts
 const main = {
     backgroundColor: '#f5f5f5',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
+    fontFamily: 'Arial, sans-serif',
     color: '#333333',
 };
 
@@ -138,10 +128,10 @@ const container = {
     maxWidth: '100%',
 };
 
-// Header styles
+// Header styles - modest color usage
 const headerContainer = {
     backgroundColor: '#6F4E37',
-    padding: '40px 20px',
+    padding: '30px 20px',
     textAlign: 'center' as const,
 };
 
@@ -154,22 +144,22 @@ const logo = {
 
 const headerText = {
     color: '#ffffff',
-    fontSize: '28px',
+    fontSize: '24px',
     fontWeight: 'bold',
     margin: '0',
     textAlign: 'center' as const,
 };
 
-// Content styles
+// Content styles - clean, readable text
 const contentContainer = {
     backgroundColor: '#ffffff',
-    padding: '40px 30px',
+    padding: '30px 25px',
     borderRadius: '0 0 4px 4px',
 };
 
 const greeting = {
     fontSize: '20px',
-    lineHeight: '28px',
+    lineHeight: '26px',
     fontWeight: 'bold',
     color: '#333333',
     marginBottom: '20px',
@@ -177,16 +167,17 @@ const greeting = {
 
 const paragraph = {
     fontSize: '16px',
-    lineHeight: '26px',
+    lineHeight: '24px',
     color: '#4a4a4a',
     marginBottom: '20px',
 };
 
 const buttonContainer = {
     textAlign: 'center' as const,
-    margin: '35px 0',
+    margin: '30px 0',
 };
 
+// Clean, minimalist button design
 const button = {
     backgroundColor: '#6F4E37',
     borderRadius: '6px',
@@ -196,31 +187,15 @@ const button = {
     textDecoration: 'none',
     textAlign: 'center' as const,
     display: 'inline-block',
-    padding: '14px 35px',
-    boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
+    padding: '12px 30px',
     border: 'none',
-    cursor: 'pointer',
-};
-
-const noteContainer = {
-    backgroundColor: '#f8f8f8',
-    borderRadius: '6px',
-    padding: '15px',
-    marginBottom: '30px',
-};
-
-const noteText = {
-    fontSize: '14px',
-    lineHeight: '22px',
-    color: '#6b6b6b',
-    margin: '0',
 };
 
 const linkContainer = {
-    margin: '16px 0 30px',
-    padding: '15px',
+    margin: '16px 0 25px',
+    padding: '12px',
     backgroundColor: '#f8f8f8',
-    borderRadius: '6px',
+    borderRadius: '4px',
     fontSize: '14px',
     wordBreak: 'break-all' as const,
 };
@@ -228,50 +203,36 @@ const linkContainer = {
 const textLink = {
     color: '#6F4E37',
     textDecoration: 'underline',
-    fontWeight: 'bold',
-};
-
-const quoteContainer = {
-    textAlign: 'center' as const,
-    margin: '35px 0',
-    fontStyle: 'italic',
-};
-
-const quoteText = {
-    fontSize: '18px',
-    lineHeight: '28px',
-    color: '#6F4E37',
-    margin: '0',
 };
 
 const signature = {
     fontSize: '16px',
     fontWeight: 'bold',
     color: '#555555',
-    marginTop: '30px',
+    marginTop: '25px',
 };
 
-// Footer styles
+// Footer styles - compliant with anti-spam laws
 const footerContainer = {
     backgroundColor: '#f0f0f0',
-    padding: '30px',
+    padding: '20px',
     borderRadius: '4px',
     textAlign: 'center' as const,
     marginTop: '20px',
 };
 
 const footerText = {
-    fontSize: '13px',
-    lineHeight: '20px',
+    fontSize: '12px',
+    lineHeight: '18px',
     color: '#8898aa',
-    margin: '5px 0',
+    margin: '4px 0',
 };
 
 const footerLinks = {
-    fontSize: '13px',
-    lineHeight: '20px',
+    fontSize: '12px',
+    lineHeight: '18px',
     color: '#8898aa',
-    margin: '15px 0 0',
+    margin: '12px 0 0',
 };
 
 const footerLink = {
