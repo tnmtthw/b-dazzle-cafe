@@ -11,14 +11,14 @@ import {
   Minus, 
   ArrowRight,
   ArrowLeft,
-  Coffee
+  Coffee,
+  Loader2
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Nunito } from 'next/font/google';
 
 import { Cart } from "@/lib/type";
 import EspressoSpinner from '@/component/EspressoSpinner';
-import EmptyCart from './EmptyCart';
 import Link from 'next/link';
 
 // Initialize Nunito font
@@ -40,7 +40,10 @@ const fetcher = async (url: string) => {
 const CartPage = () => {
     const router = useRouter();
     const { data: session, status } = useSession();
-    const { data, error, isLoading, mutate } = useSWR(`/api/cart?userId=${session?.user?.id}`, fetcher);
+    const { data, error, isLoading, mutate } = useSWR(
+        session?.user?.id ? `/api/cart?userId=${session.user.id}` : null, 
+        fetcher
+    );
     const [navbarHeight, setNavbarHeight] = useState(72); // Default value
     const [updatingQuantity, setUpdatingQuantity] = useState<string | null>(null);
 
@@ -140,23 +143,20 @@ const CartPage = () => {
     }
 
     const handleRemoveFromCart = async (cartItemId: string) => {
-        toast.loading('Removing item...');
+        const toastId = toast.loading('Removing item...');
         try {
             const response = await fetch(`/api/cart/remove?userId=${session?.user?.id}&cartItemId=${cartItemId}`, {
                 method: 'DELETE',
             });
             
-            toast.dismiss();
-            
             if (response.ok) {
-                toast.success('Item removed from cart');
+                toast.success('Item removed from cart', { id: toastId });
                 mutate();
             } else {
-                toast.error('Failed to remove item');
+                toast.error('Failed to remove item', { id: toastId });
             }
         } catch (error) {
-            toast.dismiss();
-            toast.error('Something went wrong');
+            toast.error('Something went wrong', { id: toastId });
         }
     };
 
@@ -164,20 +164,21 @@ const CartPage = () => {
         if (newQuantity < 1) return;
         
         setUpdatingQuantity(cartItemId);
+        const toastId = toast.loading('Updating quantity...');
         
         try {
-            // This is a placeholder - you would need to implement the actual API endpoint
             const response = await fetch(`/api/cart/update?userId=${session?.user?.id}&cartItemId=${cartItemId}&quantity=${newQuantity}`, {
                 method: 'PATCH',
             });
             
             if (response.ok) {
+                toast.success('Quantity updated', { id: toastId });
                 mutate();
             } else {
-                toast.error('Failed to update quantity');
+                toast.error('Failed to update quantity', { id: toastId });
             }
         } catch (error) {
-            toast.error('Something went wrong');
+            toast.error('Something went wrong', { id: toastId });
         } finally {
             setUpdatingQuantity(null);
         }
@@ -233,7 +234,10 @@ const CartPage = () => {
                                             <div className="flex flex-col sm:flex-row sm:justify-between">
                                                 <div>
                                                     <h3 className="text-lg font-medium text-gray-900">{item.product.name}</h3>
-                                                    <p className="mt-1 text-sm text-gray-500">{item.product.description?.substring(0, 50)}...</p>
+                                                    <p className="mt-1 text-sm text-gray-500">
+                                                        {item.product.description?.substring(0, 50)}
+                                                        {item.product.description && item.product.description.length > 50 ? '...' : ''}
+                                                    </p>
                                                 </div>
                                                 <div className="mt-2 sm:mt-0 text-right">
                                                     <p className="text-lg font-medium text-brown-primary">₱{item.product.price.toFixed(2)}</p>
@@ -250,7 +254,13 @@ const CartPage = () => {
                                                     >
                                                         <Minus className="h-4 w-4" />
                                                     </button>
-                                                    <span className="px-3 text-gray-900 font-medium">{item.quantity}</span>
+                                                    <span className="px-3 text-gray-900 font-medium">
+                                                        {updatingQuantity === item.id ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            item.quantity
+                                                        )}
+                                                    </span>
                                                     <button 
                                                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                                         disabled={updatingQuantity === item.id}
@@ -263,7 +273,8 @@ const CartPage = () => {
                                                 {/* Remove Button */}
                                                 <button
                                                     onClick={() => handleRemoveFromCart(item.id)}
-                                                    className="text-red-500 hover:text-red-700 focus:outline-none flex items-center"
+                                                    disabled={updatingQuantity === item.id}
+                                                    className="text-red-500 hover:text-red-700 focus:outline-none flex items-center disabled:opacity-50"
                                                 >
                                                     <Trash2 className="h-4 w-4 mr-1" />
                                                     <span className="text-sm font-medium">Remove</span>
