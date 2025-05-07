@@ -30,7 +30,7 @@ const CartPage = () => {
     </div>;
     if (isLoading) return <div className="text-center">Loading...</div>
 
-    if (!isLoading) return <div className="flex items-center justify-center h-screen text-white"><EmptyCart /></div>
+    if (data?.length === 0) return <div className="flex items-center justify-center h-screen text-white"><EmptyCart /></div>;
 
     const handleRemoveFromCart = async (cartItemId: string) => {
         const response = await fetch(`/api/cart/remove?userId=${session?.user?.id}&cartItemId=${cartItemId}`, {
