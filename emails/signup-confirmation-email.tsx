@@ -12,6 +12,7 @@ import {
     Row,
     Section,
     Text,
+    Button,
 } from '@react-email/components';
 import * as React from 'react';
 
@@ -20,7 +21,7 @@ interface SignupConfirmationEmailProps {
     email: string;
 }
 
-export const SignupConfirmationEmail = ({
+export const ImprovedVerificationEmail = ({
     name,
     email,
 }: SignupConfirmationEmailProps) => {
@@ -32,7 +33,10 @@ export const SignupConfirmationEmail = ({
     
     return (
         <Html>
-            <Head />
+            <Head>
+                {/* Add responsive meta tag */}
+                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            </Head>
             <Preview>
                 Verify your B'Dazzle Cafe account to get started
             </Preview>
@@ -62,22 +66,24 @@ export const SignupConfirmationEmail = ({
                             Please verify your email address to activate your account and enjoy our delicious coffee offerings.
                         </Text>
                         
-                        {/* Clean, simple verification button */}
+                        {/* IMPROVED BUTTON - Larger touch target for mobile */}
                         <Section style={buttonContainer}>
-                            <Link href={verificationUrl} style={button}>
-                                Verify My Email
-                            </Link>
+                            <a href={verificationUrl} style={buttonLink} target="_blank">
+                                <div style={verifyButton}>
+                                    Verify My Email
+                                </div>
+                            </a>
                         </Section>
                         
-                        {/* Fallback text link - essential for deliverability */}
+                        {/* Improved fallback text link */}
                         <Text style={paragraph}>
-                            If the button doesn't work, please copy and paste this link into your browser:
+                            If the button doesn't work, please try this link:
                         </Text>
-                        <Text style={linkContainer}>
-                            <Link href={verificationUrl} style={textLink}>
-                                {verificationUrl}
-                            </Link>
-                        </Text>
+                        
+                        {/* IMPROVED LINK - Use an anchor tag with large padding for better mobile tapping */}
+                        <a href={verificationUrl} target="_blank" style={mobileLink}>
+                            Verify My Email
+                        </a>
                         
                         <Text style={paragraph}>
                             This verification link will expire in 24 hours. If you didn't create an account with us, you can safely ignore this email.
@@ -100,10 +106,11 @@ export const SignupConfirmationEmail = ({
                         <Text style={footerText}>
                             123 Coffee Street, Manila, Philippines
                         </Text>
+                        {/* Mobile-friendly footer links - increased spacing */}
                         <Text style={footerLinks}>
-                            <Link href="#" style={footerLink}>Privacy Policy</Link> • 
-                            <Link href="#" style={footerLink}> Terms of Service</Link> •
-                            <Link href="#" style={footerLink}> Unsubscribe</Link>
+                            <a href="#" style={footerLinkMobile}>Privacy Policy</a> &nbsp;•&nbsp; 
+                            <a href="#" style={footerLinkMobile}>Terms of Service</a> &nbsp;•&nbsp;
+                            <a href="#" style={footerLinkMobile}>Unsubscribe</a>
                         </Text>
                     </Section>
                 </Container>
@@ -112,20 +119,22 @@ export const SignupConfirmationEmail = ({
     );
 };
 
-export default SignupConfirmationEmail;
+export default ImprovedVerificationEmail;
 
 // Main styles - keeping simple with web-safe fonts
 const main = {
     backgroundColor: '#f5f5f5',
     fontFamily: 'Arial, sans-serif',
     color: '#333333',
+    margin: '0',
+    padding: '0',
 };
 
 const container = {
     margin: '0 auto',
     padding: '0',
-    width: '600px',
-    maxWidth: '100%',
+    width: '100%',
+    maxWidth: '600px',
 };
 
 // Header styles - modest color usage
@@ -177,32 +186,39 @@ const buttonContainer = {
     margin: '30px 0',
 };
 
-// Clean, minimalist button design
-const button = {
+// IMPROVED BUTTON STYLES
+const buttonLink = {
+    textDecoration: 'none',
+};
+
+const verifyButton = {
     backgroundColor: '#6F4E37',
-    borderRadius: '6px',
+    borderRadius: '10px',
     color: '#ffffff',
-    fontSize: '16px',
+    fontSize: '18px',
     fontWeight: 'bold',
     textDecoration: 'none',
     textAlign: 'center' as const,
-    display: 'inline-block',
-    padding: '12px 30px',
+    display: 'block',
+    padding: '18px 30px',
+    margin: '20px auto',
+    maxWidth: '300px',
     border: 'none',
+    WebkitTapHighlightColor: 'rgba(0, 0, 0, 0)',
 };
 
-const linkContainer = {
-    margin: '16px 0 25px',
-    padding: '12px',
+// IMPROVED MOBILE LINK - big touch target
+const mobileLink = {
+    display: 'block',
+    padding: '16px',
+    margin: '10px 0 25px',
     backgroundColor: '#f8f8f8',
-    borderRadius: '4px',
-    fontSize: '14px',
-    wordBreak: 'break-all' as const,
-};
-
-const textLink = {
+    borderRadius: '8px',
     color: '#6F4E37',
+    fontSize: '16px',
+    fontWeight: 'bold',
     textDecoration: 'underline',
+    textAlign: 'center' as const,
 };
 
 const signature = {
@@ -232,10 +248,13 @@ const footerLinks = {
     fontSize: '12px',
     lineHeight: '18px',
     color: '#8898aa',
-    margin: '12px 0 0',
+    margin: '16px 0 0',
 };
 
-const footerLink = {
+// Improved mobile-friendly footer links
+const footerLinkMobile = {
     color: '#6F4E37',
     textDecoration: 'none',
+    display: 'inline-block',
+    padding: '5px',
 };
