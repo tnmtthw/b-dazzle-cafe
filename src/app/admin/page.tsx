@@ -92,99 +92,7 @@ const AdminDashboardPage = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className={`bg-brown-primary text-white ${collapsed ? 'w-20' : 'w-64'} transition-all duration-300 flex flex-col`}>
-        {/* Sidebar Header */}
-        <div className="p-4 flex items-center justify-between">
-          {!collapsed && (
-            <Link href="/admin">
-              <h1 className="text-xl font-bold">B'Dazzle Admin</h1>
-            </Link>
-          )}
-          <button 
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-1 rounded-lg hover:bg-brown-primary-hover"
-          >
-            {collapsed ? <Menu size={24} /> : <X size={24} />}
-          </button>
-        </div>
-
-        {/* Admin Info */}
-        <div className={`px-4 py-3 border-t border-b border-yellow-primary/20 ${collapsed ? 'items-center' : ''}`}>
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-yellow-primary flex items-center justify-center text-brown-primary font-bold">
-              {session?.user?.name?.charAt(0) || 'A'}
-            </div>
-            {!collapsed && (
-              <div>
-                <p className="font-medium">{session?.user?.name || 'Admin User'}</p>
-                <p className="text-xs text-gray-300">{session?.user?.role || 'Administrator'}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {sidebarItems.map((item) => (
-            <Link 
-              key={item.name} 
-              href={item.href}
-              className={`flex items-center ${collapsed ? 'justify-center' : 'justify-start'} px-3 py-3 rounded-lg transition-colors ${
-                item.href === '/admin' 
-                  ? 'bg-yellow-primary text-brown-primary font-medium' 
-                  : 'text-white hover:bg-brown-primary-hover'
-              }`}
-            >
-              <div className={`${collapsed ? '' : 'mr-3'}`}>{item.icon}</div>
-              {!collapsed && <span>{item.name}</span>}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Logout Button */}
-        <div className="p-3 border-t border-yellow-primary/20">
-          <button 
-            className={`flex items-center ${collapsed ? 'justify-center' : 'justify-start'} w-full px-3 py-3 rounded-lg text-white hover:bg-brown-primary-hover transition-colors`}
-          >
-            <LogOut size={20} className={`${collapsed ? '' : 'mr-3'}`} />
-            {!collapsed && <span>Logout</span>}
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        {/* Top Header */}
-        <header className="bg-white shadow-sm px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <input 
-                  type="text" 
-                  placeholder="Search..." 
-                  className="pl-4 pr-10 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brown-primary focus:border-transparent"
-                />
-                <svg className="w-5 h-5 absolute right-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <div className="relative">
-                <button className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">3</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Dashboard Content */}
-        <main className="p-6">
+    <main className="p-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {stats.map((stat, index) => (
@@ -282,8 +190,6 @@ const AdminDashboardPage = () => {
             </div>
           </div>
         </main>
-      </div>
-    </div>
   );
 };
 

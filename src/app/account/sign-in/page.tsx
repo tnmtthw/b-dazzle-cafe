@@ -69,8 +69,8 @@ const SignInPage = () => {
 
                         <Formik
                             initialValues={{
-                                email: "john@example.com",
-                                password: "Password123!",
+                                email: "",
+                                password: "",
                             }}
                             validationSchema={validationSchema}
                             onSubmit={handleSignIn}

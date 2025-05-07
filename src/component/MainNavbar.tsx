@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Menu, ShoppingCart, X } from 'lucide-react';
+import { Menu, ShoppingCart, X, User, Package } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 
 const navLinks = [
@@ -16,7 +16,9 @@ const navLinks = [
 export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { data: session } = useSession();
+  const userMenuRef = useRef<HTMLDivElement>(null);
   
   // State for scroll behavior
   const [visible, setVisible] = useState(true);
@@ -62,6 +64,20 @@ export default function Navbar() {
     }
   }, [scrollPosition]);
 
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <header 
       className={`w-full px-6 py-4 bg-brown-primary fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ${
@@ -96,15 +112,53 @@ export default function Navbar() {
         <div className="hidden md:flex items-center space-x-4">
           {session ? (
             <>
-              <span className="text-white font-medium">Hi, {session.user?.name}</span>
-              <button
-                onClick={() => signOut()}
-                className="px-5 py-2 bg-yellow-400 text-black font-semibold rounded-full hover:bg-yellow-300 transition"
+              {/* User dropdown menu */}
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center text-white hover:text-yellow-400 transition"
+                >
+                  <span className="mr-2">Hi, {session.user?.name}</span>
+                  <User className="h-5 w-5" />
+                </button>
+                
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <Link 
+                      href="/profile" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <User className="inline-block h-4 w-4 mr-2" />
+                      My Profile
+                    </Link>
+                    <Link 
+                      href="/profile/orders" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <Package className="inline-block h-4 w-4 mr-2" />
+                      My Orders
+                    </Link>
+                    <hr className="my-1" />
+                    <button
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => {
+                        signOut();
+                        setUserMenuOpen(false);
+                      }}
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              <Link 
+                href="/cart"
+                className="text-white hover:text-yellow-400 transition"
               >
-                Sign Out
-              </button>
-              <Link href="/cart">
-                <ShoppingCart color="white" />
+                <ShoppingCart className="h-6 w-6" />
               </Link>
             </>
           ) : (
@@ -145,22 +199,46 @@ export default function Navbar() {
 
           {session ? (
             <>
-              <div className="text-white font-medium text-center">
+              <div className="text-white font-medium text-center border-t border-white/20 pt-4 mt-4">
                 Hi, {session.user?.name}
               </div>
+              
+              <Link 
+                href="/profile"
+                className="block font-medium text-white hover:text-yellow-400 transition"
+                onClick={() => setIsOpen(false)}
+              >
+                <User className="inline-block mr-2 h-4 w-4" />
+                My Profile
+              </Link>
+              
+              <Link 
+                href="/profile/orders"
+                className="block font-medium text-white hover:text-yellow-400 transition"
+                onClick={() => setIsOpen(false)}
+              >
+                <Package className="inline-block mr-2 h-4 w-4" />
+                My Orders
+              </Link>
+              
+              <Link 
+                href="/cart" 
+                className="block font-medium text-white hover:text-yellow-400 transition" 
+                onClick={() => setIsOpen(false)}
+              >
+                <ShoppingCart className="inline-block mr-2 h-4 w-4" />
+                My Cart
+              </Link>
+              
               <button
                 onClick={() => {
                   signOut();
                   setIsOpen(false);
                 }}
-                className="block w-full text-center px-5 py-2 bg-yellow-400 text-black font-semibold rounded-full hover:bg-yellow-300 transition"
+                className="block w-full text-center px-5 py-2 mt-4 bg-yellow-400 text-black font-semibold rounded-full hover:bg-yellow-300 transition"
               >
                 Sign Out
               </button>
-              <Link href="/cart" className="block text-center mt-2" onClick={() => setIsOpen(false)}>
-                <ShoppingCart className="inline-block mr-2" color="white" size={18} />
-                <span className="text-white">Cart</span>
-              </Link>
             </>
           ) : (
             <Link
