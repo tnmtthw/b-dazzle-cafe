@@ -43,7 +43,7 @@ const SignInPage = () => {
         } else if (response?.error === "CredentialsSignin") {
             setErrorMessage("Invalid email or password. Please try again.");
         } else {
-            router.replace("/");
+            router.replace("/admin");
         }
     }
 
@@ -55,7 +55,7 @@ const SignInPage = () => {
                     <div className="hidden lg:flex bg-[url('/img/bg-r-section.jpg')] bg-right bg-cover items-center justify-center rounded-tl-[70px] rounded-bl-xl">
                         <h1 className="text-5xl md:text-6xl text-center font-bold drop-shadow-md text-white">B'Dazzle Cafe</h1>
                     </div>
-                    
+
                     {/* Right side - Form */}
                     <div className="bg-brown-primary lg:rounded-tr-[70px] lg:rounded-br-[70px] p-6 lg:p-7 space-y-3 text-white">
                         <h2 className="font-bold text-2xl mb-1">Sign in</h2>
@@ -97,14 +97,14 @@ const SignInPage = () => {
                                                 placeholder="@#*%"
                                                 className="bg-white bg-opacity-90 text-black px-3 w-full h-10 rounded-lg placeholder:text-gray-500 text-sm focus:ring-2 focus:ring-yellow-primary focus:outline-none transition-all"
                                             />
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
                                                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none transition-colors"
                                                 aria-label={showPassword ? "Hide password" : "Show password"}
                                             >
-                                                {showPassword ? 
-                                                    <EyeOff size={16} className="text-gray-600" /> : 
+                                                {showPassword ?
+                                                    <EyeOff size={16} className="text-gray-600" /> :
                                                     <Eye size={16} className="text-gray-600" />
                                                 }
                                             </button>
@@ -126,8 +126,8 @@ const SignInPage = () => {
                                         </div>
                                     </div>
 
-                                    <button 
-                                        type="submit" 
+                                    <button
+                                        type="submit"
                                         disabled={isSubmitting}
                                         className="bg-yellow-primary font-bold text-brown-primary w-full h-10 rounded-lg hover:bg-yellow-400 focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition-all text-sm mt-2"
                                     >
@@ -136,7 +136,7 @@ const SignInPage = () => {
                                 </Form>
                             )}
                         </Formik>
-                        
+
                         <div className="flex items-center justify-center my-2 relative z-10">
                             <div className="flex-grow border-t border-gray-400 opacity-50"></div>
                             <span className="mx-3 text-xs text-gray-200">OR</span>
