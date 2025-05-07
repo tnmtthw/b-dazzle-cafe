@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import { useSession } from 'next-auth/react';
 import { MapPin, Package, ReceiptText, Trash2, Wallet } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 import { Cart } from "@/lib/type";
 import EspressoSpinner from '@/component/EspressoSpinner';
@@ -22,6 +23,8 @@ const OrderPage = () => {
     const { data, error, isLoading, mutate } = useSWR(`/api/cart?userId=${session?.user?.id}`, fetcher)
 
     const df = 50;
+
+    const router = useRouter();
 
     if (isLoading) return <div className="flex items-center justify-center min-h-screen">
         <EspressoSpinner />
@@ -50,6 +53,7 @@ const OrderPage = () => {
         if (res.ok) {
             const result = await res.json();
             toast.success(`Order placed! Order ID: ${result.orderId}`);
+            router.push('/order/confirmation');
             mutate();
         } else {
             const error = await res.json();
