@@ -44,7 +44,8 @@ export const SignupConfirmationEmail = ({
                     Thank you for signing up for B-Dazzle Cafe! Before you can place your first coffee order, we need to verify your email address.
                 </Text>
                 <Section style={buttonContainer}>
-                    <Link style={button} href={`http://localhost:3000/account/verify/${email}`}>
+                    <Link style={button} href={`b-dazzle-cafe.vercel.app/account/verify/${email}`}>
+                        {/* <Link style={button} href={`http://localhost:3000/account/verify/${email}`}> */}
                         Verify your email address
                     </Link>
                 </Section>
