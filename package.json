@@ -29,7 +29,7 @@
     "react-email": "^4.0.11",
     "react-hot-toast": "^2.5.2",
     "swr": "^2.3.3",
-    "vercel": "^41.7.0",
+    "vercel": "^25.2.0",
     "yup": "^1.6.1"
   },
   "devDependencies": {

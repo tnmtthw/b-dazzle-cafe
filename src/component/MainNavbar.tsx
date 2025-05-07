@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Menu, ShoppingCart, X } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 
@@ -17,9 +17,57 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
+  
+  // State for scroll behavior
+  const [visible, setVisible] = useState(true);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentPosition = window.scrollY;
+      
+      // Show navbar when scrolling occurs
+      setVisible(true);
+      
+      // Clear previous timer
+      if (scrollTimerRef.current) {
+        clearTimeout(scrollTimerRef.current);
+      }
+      
+      // Set new timer to hide navbar after scrolling stops
+      scrollTimerRef.current = setTimeout(() => {
+        if (currentPosition > 100) { // Only hide when scrolled down
+          setVisible(false);
+        }
+      }, 1500); // Adjust timing as needed (1.5 seconds)
+      
+      setScrollPosition(currentPosition);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimerRef.current) {
+        clearTimeout(scrollTimerRef.current);
+      }
+    };
+  }, []);
+  
+  // Show navbar when at top of page
+  useEffect(() => {
+    if (scrollPosition <= 100) {
+      setVisible(true);
+    }
+  }, [scrollPosition]);
 
   return (
-    <header className="w-full px-6 py-4 bg-brown-primary">
+    <header 
+      className={`w-full px-6 py-4 bg-brown-primary fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ${
+        visible ? 'transform-none shadow-lg' : 'transform -translate-y-full'
+      }`}
+    >
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         {/* Logo */}
         <Link href="/">
@@ -27,13 +75,14 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex space-x-8 ">
+        <nav className="hidden md:flex space-x-8">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               href={link.href}
-              className={`relative font-medium transition ${pathname === link.href ? 'text-yellow-400' : 'text-white'
-                } hover:text-yellow-400`}
+              className={`relative font-medium transition ${
+                pathname === link.href ? 'text-yellow-400' : 'text-white'
+              } hover:text-yellow-400`}
             >
               {link.name}
               {pathname === link.href && (
@@ -55,7 +104,7 @@ export default function Navbar() {
                 Sign Out
               </button>
               <Link href="/cart">
-                <ShoppingCart color='white' />
+                <ShoppingCart color="white" />
               </Link>
             </>
           ) : (
@@ -72,6 +121,7 @@ export default function Navbar() {
         <button
           className="md:hidden text-white"
           onClick={() => setIsOpen(!isOpen)}
+          aria-label={isOpen ? "Close menu" : "Open menu"}
         >
           {isOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
@@ -79,13 +129,14 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden mt-4 space-y-4 px-6">
+        <div className="md:hidden mt-4 space-y-4 px-6 pb-4">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               href={link.href}
-              className={`block font-medium transition ${pathname === link.href ? 'text-yellow-400' : 'text-white'
-                } hover:text-yellow-400`}
+              className={`block font-medium transition ${
+                pathname === link.href ? 'text-yellow-400' : 'text-white'
+              } hover:text-yellow-400`}
               onClick={() => setIsOpen(false)}
             >
               {link.name}
@@ -106,6 +157,10 @@ export default function Navbar() {
               >
                 Sign Out
               </button>
+              <Link href="/cart" className="block text-center mt-2" onClick={() => setIsOpen(false)}>
+                <ShoppingCart className="inline-block mr-2" color="white" size={18} />
+                <span className="text-white">Cart</span>
+              </Link>
             </>
           ) : (
             <Link
