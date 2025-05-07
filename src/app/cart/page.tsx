@@ -4,9 +4,12 @@ import React from 'react';
 import useSWR from 'swr';
 import { useSession } from 'next-auth/react';
 import { Trash2 } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 import { Cart } from "@/lib/type";
 import EspressoSpinner from '@/component/EspressoSpinner';
+import EmptyCart from './EmptyCart';
 
 const fetcher = async (url: string) => {
     const res = await fetch(url);
@@ -17,6 +20,8 @@ const fetcher = async (url: string) => {
 };
 
 const CartPage = () => {
+    const router = useRouter();
+
     const { data: session, status } = useSession();
     const { data, error, isLoading, mutate } = useSWR(`/api/cart?userId=${session?.user?.id}`, fetcher)
 
@@ -24,6 +29,8 @@ const CartPage = () => {
         <EspressoSpinner />
     </div>;
     if (isLoading) return <div className="text-center">Loading...</div>
+
+    if (!isLoading) return <div className="flex items-center justify-center h-screen text-white"><EmptyCart /></div>
 
     const handleRemoveFromCart = async (cartItemId: string) => {
         const response = await fetch(`/api/cart/remove?userId=${session?.user?.id}&cartItemId=${cartItemId}`, {
@@ -42,8 +49,17 @@ const CartPage = () => {
         }, 0);
     };
 
+    const handlePlaceOrder = () => {
+        router.push('/order');
+    };
+
+
     return (
         <div className="max-w-7xl mx-auto p-4">
+            <Toaster
+                position="bottom-right"
+                reverseOrder={false}
+            />
             <h1 className="text-3xl font-bold text-center mb-6">Your Cart</h1>
             <div className="space-y-4">
                 {data.map((item: Cart) => (
@@ -62,8 +78,9 @@ const CartPage = () => {
                     </div>
                 ))}
             </div>
-            <div className="text-xl font-semibold mt-6">
+            <div className="flex items-center justify-between text-xl font-semibold mt-6">
                 <h3>Total: <span className="text-green-500">₱{calculateTotal()}</span></h3>
+                <button onClick={handlePlaceOrder} className="p-2 bg-brown-primary hover:bg-brown-primary-hover text-white rounded-lg">Place Order</button>
             </div>
         </div>
     );
