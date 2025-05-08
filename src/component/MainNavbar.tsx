@@ -20,36 +20,36 @@ export default function Navbar() {
   const [darkMode, setDarkMode] = useState(false);
   const { data: session } = useSession();
   const userMenuRef = useRef<HTMLDivElement>(null);
-  
+
   // State for scroll behavior
   const [visible, setVisible] = useState(true);
   const [scrollPosition, setScrollPosition] = useState(0);
   const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   useEffect(() => {
     const handleScroll = () => {
       const currentPosition = window.scrollY;
-      
+
       // Show navbar when scrolling occurs
       setVisible(true);
-      
+
       // Clear previous timer
       if (scrollTimerRef.current) {
         clearTimeout(scrollTimerRef.current);
       }
-      
+
       // Set new timer to hide navbar after scrolling stops
       scrollTimerRef.current = setTimeout(() => {
         if (currentPosition > 100) { // Only hide when scrolled down
           setVisible(false);
         }
       }, 1500); // Adjust timing as needed (1.5 seconds)
-      
+
       setScrollPosition(currentPosition);
     };
-    
+
     window.addEventListener('scroll', handleScroll);
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       if (scrollTimerRef.current) {
@@ -57,7 +57,7 @@ export default function Navbar() {
       }
     };
   }, []);
-  
+
   // Show navbar when at top of page
   useEffect(() => {
     if (scrollPosition <= 100) {
@@ -90,16 +90,15 @@ export default function Navbar() {
     if (session?.user?.role) {
       return session.user.role;
     }
-    
+
     // Default role if none is specified
     return "Customer";
   };
 
   return (
-    <header 
-      className={`w-full px-6 py-4 bg-brown-primary fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ${
-        visible ? 'transform-none shadow-lg' : 'transform -translate-y-full'
-      }`}
+    <header
+      className={`w-full px-6 py-4 bg-brown-primary fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ${visible ? 'transform-none shadow-lg' : 'transform -translate-y-full'
+        }`}
     >
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         {/* Logo */}
@@ -113,9 +112,8 @@ export default function Navbar() {
             <Link
               key={link.name}
               href={link.href}
-              className={`relative font-nunito font-medium transition ${
-                pathname === link.href ? 'text-yellow-400' : 'text-white'
-              } hover:text-yellow-400`}
+              className={`relative font-nunito font-medium transition ${pathname === link.href ? 'text-yellow-400' : 'text-white'
+                } hover:text-yellow-400`}
             >
               {link.name}
               {pathname === link.href && (
@@ -145,7 +143,7 @@ export default function Navbar() {
                     )}
                   </div>
                 </button>
-                
+
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg py-1 z-50">
                     {/* User info section */}
@@ -169,28 +167,28 @@ export default function Navbar() {
                         <p className="text-sm font-nunito text-gray-500">{getUserRole()}</p>
                       </div>
                     </div>
-                    
+
                     {/* Menu items */}
                     <div className="py-1">
-                      <Link 
-                        href="/profile" 
+                      <Link
+                        href="/profile"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 font-nunito"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <User className="h-5 w-5 mr-3 text-gray-500" />
                         View Profile
                       </Link>
-                      
-                      <Link 
-                        href="/profile/orders" 
+
+                      <Link
+                        href="/profile/orders"
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 font-nunito"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <Package className="h-5 w-5 mr-3 text-gray-500" />
                         My Orders
                       </Link>
-                      
-                      <div 
+
+                      {/* <div 
                         className="flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-50 font-nunito cursor-pointer"
                         onClick={toggleDarkMode}
                       >
@@ -201,8 +199,8 @@ export default function Navbar() {
                         <div className={`w-10 h-5 rounded-full flex items-center ${darkMode ? 'bg-blue-500' : 'bg-gray-300'} transition-colors`}>
                           <span className={`h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform ${darkMode ? 'translate-x-5' : 'translate-x-1'}`}></span>
                         </div>
-                      </div>
-                      
+                      </div> */}
+
                       <button
                         className="flex w-full items-center px-4 py-3 text-gray-700 hover:bg-gray-50 font-nunito"
                         onClick={() => {
@@ -217,8 +215,8 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
-              
-              <Link 
+
+              <Link
                 href="/cart"
                 className="text-white hover:text-yellow-400 transition relative"
               >
@@ -255,9 +253,8 @@ export default function Navbar() {
             <Link
               key={link.name}
               href={link.href}
-              className={`block font-nunito font-medium transition ${
-                pathname === link.href ? 'text-yellow-400' : 'text-white'
-              } hover:text-yellow-400`}
+              className={`block font-nunito font-medium transition ${pathname === link.href ? 'text-yellow-400' : 'text-white'
+                } hover:text-yellow-400`}
               onClick={() => setIsOpen(false)}
             >
               {link.name}
@@ -278,8 +275,8 @@ export default function Navbar() {
                 </div>
                 <span>Hi, {session.user?.name}</span>
               </div>
-              
-              <Link 
+
+              <Link
                 href="/profile"
                 className="block font-nunito font-medium text-white hover:text-yellow-400 transition"
                 onClick={() => setIsOpen(false)}
@@ -287,8 +284,8 @@ export default function Navbar() {
                 <User className="inline-block mr-2 h-4 w-4" />
                 View Profile
               </Link>
-              
-              <Link 
+
+              <Link
                 href="/profile/orders"
                 className="block font-nunito font-medium text-white hover:text-yellow-400 transition"
                 onClick={() => setIsOpen(false)}
@@ -296,8 +293,8 @@ export default function Navbar() {
                 <Package className="inline-block mr-2 h-4 w-4" />
                 My Orders
               </Link>
-              
-              <div 
+
+              <div
                 className="flex items-center justify-between text-white font-nunito font-medium hover:text-yellow-400 transition px-2 py-1 cursor-pointer"
                 onClick={toggleDarkMode}
               >
@@ -309,16 +306,16 @@ export default function Navbar() {
                   <span className={`h-3 w-3 rounded-full bg-white shadow-sm transform transition-transform ${darkMode ? 'translate-x-4' : 'translate-x-1'}`}></span>
                 </div>
               </div>
-              
-              <Link 
-                href="/cart" 
-                className="block font-nunito font-medium text-white hover:text-yellow-400 transition" 
+
+              <Link
+                href="/cart"
+                className="block font-nunito font-medium text-white hover:text-yellow-400 transition"
                 onClick={() => setIsOpen(false)}
               >
                 <ShoppingCart className="inline-block mr-2 h-4 w-4" />
                 My Cart
               </Link>
-              
+
               <button
                 onClick={() => {
                   signOut();
