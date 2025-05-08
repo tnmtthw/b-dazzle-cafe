@@ -3,9 +3,9 @@ import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import "./globals.css";
 import { Navbar } from "@/component/Navbar";
-import { Playfair_Display } from "next/font/google";
+import { Playfair_Display, Nunito } from "next/font/google";
 
-// ✅ Configure the font
+// ✅ Configure the fonts
 const playfair = Playfair_Display({
   subsets: ['latin'],
   display: 'swap',
@@ -13,6 +13,12 @@ const playfair = Playfair_Display({
   variable: '--font-playfair',
 });
 
+const nunito = Nunito({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-nunito',
+});
 
 export const metadata: Metadata = {
   title: "B'Dazzle Cafe",
@@ -27,7 +33,7 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang="en" className={playfair.className}>
+    <html lang="en" className={`${playfair.variable} ${nunito.variable}`}>
       <SessionProvider session={session}>
         <body className="select-none">
           <Navbar />
