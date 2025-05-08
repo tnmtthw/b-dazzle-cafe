@@ -40,7 +40,7 @@ const fetcher = async (url: string) => {
     return res.json();
 };
 
-// Confirmation Modal Component
+// Inline Confirmation Modal Component
 const ConfirmationModal = ({ 
   isOpen, 
   onClose, 
@@ -55,12 +55,8 @@ const ConfirmationModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
-        className="absolute inset-0 bg-black bg-opacity-30" 
-        onClick={onClose}
-      ></div>
-      <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-6 mx-4 border border-gray-200 z-10">
+    <div className="relative z-20 max-w-md mx-auto my-8 bg-white rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.3)] border border-gray-200 overflow-hidden">
+      <div className="p-6">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center">
             <AlertTriangle className="text-amber-500 h-6 w-6 mr-2" />
@@ -100,7 +96,7 @@ const ConfirmationModal = ({
   );
 };
 
-// Success Modal Component
+// Inline Success Modal Component
 const SuccessModal = ({ 
   isOpen, 
   onClose,
@@ -124,12 +120,8 @@ const SuccessModal = ({
   }, [isOpen, onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
-        className="absolute inset-0 bg-black bg-opacity-30" 
-        onClick={onClose}
-      ></div>
-      <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-6 mx-4 border border-gray-200 z-10">
+    <div className="relative z-20 max-w-md mx-auto my-8 bg-white rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.3)] border border-gray-200 overflow-hidden">
+      <div className="p-6">
         <div className="flex flex-col items-center text-center">
           <CheckCircle2 className="text-green-500 h-16 w-16 mb-4" />
           <h3 className="text-xl font-bold text-gray-900 mb-2">Item Removed Successfully</h3>
@@ -326,30 +318,35 @@ const CartPage = () => {
         >
             <Toaster position="bottom-right" reverseOrder={false} />
             
-            {/* Confirmation Modal */}
-            <ConfirmationModal 
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onConfirm={() => {
-                    if (itemToRemove) {
-                        handleRemoveFromCart(itemToRemove.id);
-                    }
-                }}
-                itemName={itemToRemove?.name || ''}
-            />
-            
-            {/* Success Modal */}
-            <SuccessModal
-                isOpen={isSuccessModalOpen}
-                onClose={() => setIsSuccessModalOpen(false)}
-                itemName={removedItemName}
-            />
-            
-            <div className="py-8">
+            <div className="py-8 relative">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Cart</h1>
                 <p className="text-gray-600">Review and update your items before checking out</p>
                 
-                <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Inline Confirmation Modal */}
+                {isModalOpen && (
+                    <ConfirmationModal 
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        onConfirm={() => {
+                            if (itemToRemove) {
+                                handleRemoveFromCart(itemToRemove.id);
+                            }
+                        }}
+                        itemName={itemToRemove?.name || ''}
+                    />
+                )}
+                
+                {/* Inline Success Modal */}
+                {isSuccessModalOpen && (
+                    <SuccessModal
+                        isOpen={isSuccessModalOpen}
+                        onClose={() => setIsSuccessModalOpen(false)}
+                        itemName={removedItemName}
+                    />
+                )}
+                
+                {/* Apply a slight blur and opacity when modals are open */}
+                <div className={`mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 ${(isModalOpen || isSuccessModalOpen) ? 'opacity-50 filter blur-[1px] pointer-events-none' : ''}`}>
                     {/* Cart Items - Left Side */}
                     <div className="lg:col-span-2 space-y-6">
                         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
