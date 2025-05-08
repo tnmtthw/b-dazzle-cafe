@@ -40,100 +40,6 @@ const fetcher = async (url: string) => {
     return res.json();
 };
 
-// Inline Confirmation Modal Component
-const ConfirmationModal = ({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  itemName 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  onConfirm: () => void; 
-  itemName: string;
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="relative z-20 max-w-md mx-auto my-8 bg-white rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.3)] border border-gray-200 overflow-hidden">
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center">
-            <AlertTriangle className="text-amber-500 h-6 w-6 mr-2" />
-            <h3 className="text-xl font-bold text-gray-900">Remove Item?</h3>
-          </div>
-          <button 
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-        
-        <p className="text-gray-600 mb-6">
-          Are you sure you want to remove <span className="font-medium text-gray-900">{itemName}</span> from your cart?
-        </p>
-        
-        <div className="flex space-x-3 justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              onConfirm();
-              onClose();
-            }}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
-          >
-            Remove
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Inline Success Modal Component
-const SuccessModal = ({ 
-  isOpen, 
-  onClose,
-  itemName 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void;
-  itemName: string;
-}) => {
-  if (!isOpen) return null;
-
-  // Auto-close after 2 seconds
-  useEffect(() => {
-    if (isOpen) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 2000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, onClose]);
-
-  return (
-    <div className="relative z-20 max-w-md mx-auto my-8 bg-white rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.3)] border border-gray-200 overflow-hidden">
-      <div className="p-6">
-        <div className="flex flex-col items-center text-center">
-          <CheckCircle2 className="text-green-500 h-16 w-16 mb-4" />
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Item Removed Successfully</h3>
-          <p className="text-gray-600">
-            <span className="font-medium">{itemName}</span> has been removed from your cart.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const CartPage = () => {
     const router = useRouter();
     const { data: session, status } = useSession();
@@ -145,10 +51,21 @@ const CartPage = () => {
     const [updatingQuantity, setUpdatingQuantity] = useState<string | null>(null);
     
     // Modal states
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [itemToRemove, setItemToRemove] = useState<{ id: string; name: string } | null>(null);
     const [removedItemName, setRemovedItemName] = useState('');
+
+    // Auto-close success modal after 2 seconds
+    useEffect(() => {
+        if (isSuccessModalOpen) {
+            const timer = setTimeout(() => {
+                setIsSuccessModalOpen(false);
+            }, 2000);
+            
+            return () => clearTimeout(timer);
+        }
+    }, [isSuccessModalOpen]);
 
     // Effect to measure navbar height
     useEffect(() => {
@@ -248,11 +165,13 @@ const CartPage = () => {
     // Open confirmation modal
     const openRemoveConfirmation = (id: string, name: string) => {
         setItemToRemove({ id, name });
-        setIsModalOpen(true);
+        setIsRemoveModalOpen(true);
     };
     
-    // Actual remove handler (called after confirmation)
+    // Handle removing from cart
     const handleRemoveFromCart = async (cartItemId: string) => {
+        setIsRemoveModalOpen(false);
+        
         try {
             const response = await fetch(`/api/cart/remove?userId=${session?.user?.id}&cartItemId=${cartItemId}`, {
                 method: 'DELETE',
@@ -318,35 +237,72 @@ const CartPage = () => {
         >
             <Toaster position="bottom-right" reverseOrder={false} />
             
-            <div className="py-8 relative">
+            {/* Remove Item Modal - with shadow but no background overlay */}
+            {isRemoveModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+                    <div className="bg-white rounded-md shadow-[0_0_25px_rgba(0,0,0,0.3)] p-6 w-full max-w-md pointer-events-auto">
+                        <div className="flex items-start mb-4">
+                            <div className="mr-2 text-amber-500">
+                                <AlertTriangle size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Remove Item?</h3>
+                                <p className="mt-2 text-gray-600">
+                                    Are you sure you want to remove <span className="font-medium">{itemToRemove?.name}</span> from your cart?
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setIsRemoveModalOpen(false)}
+                                className="ml-auto text-gray-400 hover:text-gray-500"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                        
+                        <div className="flex justify-end space-x-2 mt-6">
+                            <button
+                                onClick={() => setIsRemoveModalOpen(false)}
+                                className="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (itemToRemove) {
+                                        handleRemoveFromCart(itemToRemove.id);
+                                    }
+                                }}
+                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Success Modal */}
+            {isSuccessModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+                    <div className="bg-white rounded-md shadow-[0_0_25px_rgba(0,0,0,0.3)] p-6 w-full max-w-md pointer-events-auto">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="text-green-500 mb-4">
+                                <CheckCircle2 size={48} />
+                            </div>
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">Item Removed Successfully</h3>
+                            <p className="text-gray-600">
+                                <span className="font-medium">{removedItemName}</span> has been removed from your cart.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            <div className="py-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Cart</h1>
                 <p className="text-gray-600">Review and update your items before checking out</p>
                 
-                {/* Inline Confirmation Modal */}
-                {isModalOpen && (
-                    <ConfirmationModal 
-                        isOpen={isModalOpen}
-                        onClose={() => setIsModalOpen(false)}
-                        onConfirm={() => {
-                            if (itemToRemove) {
-                                handleRemoveFromCart(itemToRemove.id);
-                            }
-                        }}
-                        itemName={itemToRemove?.name || ''}
-                    />
-                )}
-                
-                {/* Inline Success Modal */}
-                {isSuccessModalOpen && (
-                    <SuccessModal
-                        isOpen={isSuccessModalOpen}
-                        onClose={() => setIsSuccessModalOpen(false)}
-                        itemName={removedItemName}
-                    />
-                )}
-                
-                {/* Apply a slight blur and opacity when modals are open */}
-                <div className={`mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 ${(isModalOpen || isSuccessModalOpen) ? 'opacity-50 filter blur-[1px] pointer-events-none' : ''}`}>
+                <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Cart Items - Left Side */}
                     <div className="lg:col-span-2 space-y-6">
                         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
