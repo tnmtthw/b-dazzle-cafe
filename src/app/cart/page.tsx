@@ -14,7 +14,8 @@ import {
   Coffee,
   Loader2,
   X,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle2
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Nunito } from 'next/font/google';
@@ -56,7 +57,7 @@ const ConfirmationModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div 
-        className="absolute inset-0 bg-transparent" 
+        className="absolute inset-0 bg-black bg-opacity-30" 
         onClick={onClose}
       ></div>
       <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-6 mx-4 border border-gray-200 z-10">
@@ -99,6 +100,48 @@ const ConfirmationModal = ({
   );
 };
 
+// Success Modal Component
+const SuccessModal = ({ 
+  isOpen, 
+  onClose,
+  itemName 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  itemName: string;
+}) => {
+  if (!isOpen) return null;
+
+  // Auto-close after 2 seconds
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div 
+        className="absolute inset-0 bg-black bg-opacity-30" 
+        onClick={onClose}
+      ></div>
+      <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-6 mx-4 border border-gray-200 z-10">
+        <div className="flex flex-col items-center text-center">
+          <CheckCircle2 className="text-green-500 h-16 w-16 mb-4" />
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Item Removed Successfully</h3>
+          <p className="text-gray-600">
+            <span className="font-medium">{itemName}</span> has been removed from your cart.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CartPage = () => {
     const router = useRouter();
     const { data: session, status } = useSession();
@@ -109,9 +152,11 @@ const CartPage = () => {
     const [navbarHeight, setNavbarHeight] = useState(72); // Default value
     const [updatingQuantity, setUpdatingQuantity] = useState<string | null>(null);
     
-    // Modal state
+    // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [itemToRemove, setItemToRemove] = useState<{ id: string; name: string } | null>(null);
+    const [removedItemName, setRemovedItemName] = useState('');
 
     // Effect to measure navbar height
     useEffect(() => {
@@ -216,20 +261,23 @@ const CartPage = () => {
     
     // Actual remove handler (called after confirmation)
     const handleRemoveFromCart = async (cartItemId: string) => {
-        const toastId = toast.loading('Removing item...');
         try {
             const response = await fetch(`/api/cart/remove?userId=${session?.user?.id}&cartItemId=${cartItemId}`, {
                 method: 'DELETE',
             });
             
             if (response.ok) {
-                toast.success('Item removed from cart', { id: toastId });
+                // Show success modal instead of toast
+                if (itemToRemove) {
+                    setRemovedItemName(itemToRemove.name);
+                    setIsSuccessModalOpen(true);
+                }
                 mutate();
             } else {
-                toast.error('Failed to remove item', { id: toastId });
+                toast.error('Failed to remove item');
             }
         } catch (error) {
-            toast.error('Something went wrong', { id: toastId });
+            toast.error('Something went wrong');
         }
     };
 
@@ -288,6 +336,13 @@ const CartPage = () => {
                     }
                 }}
                 itemName={itemToRemove?.name || ''}
+            />
+            
+            {/* Success Modal */}
+            <SuccessModal
+                isOpen={isSuccessModalOpen}
+                onClose={() => setIsSuccessModalOpen(false)}
+                itemName={removedItemName}
             />
             
             <div className="py-8">
