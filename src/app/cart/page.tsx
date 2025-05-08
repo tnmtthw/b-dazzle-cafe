@@ -12,7 +12,9 @@ import {
   ArrowRight,
   ArrowLeft,
   Coffee,
-  Loader2
+  Loader2,
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Nunito } from 'next/font/google';
@@ -37,6 +39,66 @@ const fetcher = async (url: string) => {
     return res.json();
 };
 
+// Confirmation Modal Component
+const ConfirmationModal = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  itemName 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  itemName: string;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div 
+        className="absolute inset-0 bg-transparent" 
+        onClick={onClose}
+      ></div>
+      <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-6 mx-4 border border-gray-200 z-10">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center">
+            <AlertTriangle className="text-amber-500 h-6 w-6 mr-2" />
+            <h3 className="text-xl font-bold text-gray-900">Remove Item?</h3>
+          </div>
+          <button 
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+        
+        <p className="text-gray-600 mb-6">
+          Are you sure you want to remove <span className="font-medium text-gray-900">{itemName}</span> from your cart?
+        </p>
+        
+        <div className="flex space-x-3 justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CartPage = () => {
     const router = useRouter();
     const { data: session, status } = useSession();
@@ -46,6 +108,10 @@ const CartPage = () => {
     );
     const [navbarHeight, setNavbarHeight] = useState(72); // Default value
     const [updatingQuantity, setUpdatingQuantity] = useState<string | null>(null);
+    
+    // Modal state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [itemToRemove, setItemToRemove] = useState<{ id: string; name: string } | null>(null);
 
     // Effect to measure navbar height
     useEffect(() => {
@@ -141,7 +207,14 @@ const CartPage = () => {
             </div>
         );
     }
-
+    
+    // Open confirmation modal
+    const openRemoveConfirmation = (id: string, name: string) => {
+        setItemToRemove({ id, name });
+        setIsModalOpen(true);
+    };
+    
+    // Actual remove handler (called after confirmation)
     const handleRemoveFromCart = async (cartItemId: string) => {
         const toastId = toast.loading('Removing item...');
         try {
@@ -204,6 +277,18 @@ const CartPage = () => {
             style={{ paddingTop: `${navbarHeight + 24}px` }}
         >
             <Toaster position="bottom-right" reverseOrder={false} />
+            
+            {/* Confirmation Modal */}
+            <ConfirmationModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={() => {
+                    if (itemToRemove) {
+                        handleRemoveFromCart(itemToRemove.id);
+                    }
+                }}
+                itemName={itemToRemove?.name || ''}
+            />
             
             <div className="py-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Cart</h1>
@@ -272,7 +357,7 @@ const CartPage = () => {
                                                 
                                                 {/* Remove Button */}
                                                 <button
-                                                    onClick={() => handleRemoveFromCart(item.id)}
+                                                    onClick={() => openRemoveConfirmation(item.id, item.product.name)}
                                                     disabled={updatingQuantity === item.id}
                                                     className="text-red-500 hover:text-red-700 focus:outline-none flex items-center disabled:opacity-50"
                                                 >
