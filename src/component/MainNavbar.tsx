@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Menu, ShoppingCart, X, User, Package, Settings, LogOut, BarChart2, HelpCircle, Moon } from 'lucide-react';
+import { Menu, ShoppingCart, X, User, LogOut, Moon, Package } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 
 const navLinks = [
@@ -84,6 +84,17 @@ export default function Navbar() {
     // Here you would implement the actual dark mode toggle logic
   };
 
+  // Function to determine user role
+  const getUserRole = () => {
+    // This is a placeholder - replace with your actual role logic
+    if (session?.user?.role) {
+      return session.user.role;
+    }
+    
+    // Default role if none is specified
+    return "Customer";
+  };
+
   return (
     <header 
       className={`w-full px-6 py-4 bg-brown-primary fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ${
@@ -150,10 +161,12 @@ export default function Navbar() {
                       </div>
                       <div>
                         <p className="text-gray-800 font-semibold font-nunito">{session.user?.name || 'User'}</p>
-                        <p className="text-gray-500 text-sm font-nunito">
-                          {session.user?.email || ''}
-                          <span className="ml-2 inline-block px-2 py-0.5 text-xs bg-gray-800 text-white rounded-sm">PRO</span>
-                        </p>
+                        <div className="flex items-center">
+                          <p className="text-gray-500 text-sm font-nunito">
+                            {session.user?.email || ''}
+                          </p>
+                        </div>
+                        <p className="text-sm font-nunito text-gray-500">{getUserRole()}</p>
                       </div>
                     </div>
                     
@@ -169,41 +182,12 @@ export default function Navbar() {
                       </Link>
                       
                       <Link 
-                        href="/analytics" 
+                        href="/profile/orders" 
                         className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 font-nunito"
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        <BarChart2 className="h-5 w-5 mr-3 text-gray-500" />
-                        Analytics & Data
-                      </Link>
-                      
-                      <Link 
-                        href="/help" 
-                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 font-nunito"
-                        onClick={() => setUserMenuOpen(false)}
-                      >
-                        <HelpCircle className="h-5 w-5 mr-3 text-gray-500" />
-                        Help Center
-                      </Link>
-                      
-                      <Link 
-                        href="/settings" 
-                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 font-nunito"
-                        onClick={() => setUserMenuOpen(false)}
-                      >
-                        <Settings className="h-5 w-5 mr-3 text-gray-500" />
-                        Account Settings
-                      </Link>
-                      
-                      <Link 
-                        href="/upgrade" 
-                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 font-nunito"
-                        onClick={() => setUserMenuOpen(false)}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-3 text-gray-500">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                        </svg>
-                        Upgrade Plan
+                        <Package className="h-5 w-5 mr-3 text-gray-500" />
+                        My Orders
                       </Link>
                       
                       <div 
@@ -305,31 +289,26 @@ export default function Navbar() {
               </Link>
               
               <Link 
-                href="/analytics"
+                href="/profile/orders"
                 className="block font-nunito font-medium text-white hover:text-yellow-400 transition"
                 onClick={() => setIsOpen(false)}
               >
-                <BarChart2 className="inline-block mr-2 h-4 w-4" />
-                Analytics & Data
+                <Package className="inline-block mr-2 h-4 w-4" />
+                My Orders
               </Link>
               
-              <Link 
-                href="/help"
-                className="block font-nunito font-medium text-white hover:text-yellow-400 transition"
-                onClick={() => setIsOpen(false)}
+              <div 
+                className="flex items-center justify-between text-white font-nunito font-medium hover:text-yellow-400 transition px-2 py-1 cursor-pointer"
+                onClick={toggleDarkMode}
               >
-                <HelpCircle className="inline-block mr-2 h-4 w-4" />
-                Help Center
-              </Link>
-              
-              <Link 
-                href="/settings"
-                className="block font-nunito font-medium text-white hover:text-yellow-400 transition"
-                onClick={() => setIsOpen(false)}
-              >
-                <Settings className="inline-block mr-2 h-4 w-4" />
-                Account Settings
-              </Link>
+                <div className="flex items-center">
+                  <Moon className="inline-block mr-2 h-4 w-4" />
+                  Dark Mode
+                </div>
+                <div className={`w-8 h-4 rounded-full flex items-center ${darkMode ? 'bg-blue-500' : 'bg-gray-500'} transition-colors`}>
+                  <span className={`h-3 w-3 rounded-full bg-white shadow-sm transform transition-transform ${darkMode ? 'translate-x-4' : 'translate-x-1'}`}></span>
+                </div>
+              </div>
               
               <Link 
                 href="/cart" 
