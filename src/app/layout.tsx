@@ -37,9 +37,9 @@ export default async function RootLayout({
       <SessionProvider session={session}>
         <body className="select-none">
           <Navbar />
-          <main>{children}</main>
+          <main className="bg-gray-50 h-screen">{children}</main>
         </body>
-      </SessionProvider>
-    </html>
+      </SessionProvider >
+    </html >
   );
 }
