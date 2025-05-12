@@ -26,7 +26,7 @@ const AdminDashboardPage = () => {
   // Navigation items for sidebar
   const sidebarItems = [
     { icon: <LayoutDashboard size={20} />, name: 'Dashboard', href: '/admin' },
-    { icon: <Coffee size={20} />, name: 'Products', href: '/admin/products' },
+    { icon: <Coffee size={20} />, name: 'Products', href: '/admin/productcontrol' },
     { icon: <ShoppingCart size={20} />, name: 'Orders', href: '/admin/orders' },
     { icon: <Users size={20} />, name: 'Customers', href: '/admin/customers' },
     { icon: <BarChart3 size={20} />, name: 'Analytics', href: '/admin/analytics' },
