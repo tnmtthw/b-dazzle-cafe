@@ -82,8 +82,8 @@ const AdminMainNav = ({ children }: AdminNavbarProps) => {
     { icon: <LayoutDashboard size={20} />, name: 'Dashboard', href: '/admin' },
     { icon: <Coffee size={20} />, name: 'Products', href: '/admin/productcontrol', badge: 'New' },
     { icon: <ShoppingCart size={20} />, name: 'Orders', href: '/admin/orders', badge: 3 },
-    { icon: <Users size={20} />, name: 'Customers', href: '/admin/customers' },
-    { icon: <BarChart3 size={20} />, name: 'Analytics', href: '/admin/analytics' },
+    { icon: <Users size={20} />, name: 'User', href: '/admin/Users' },
+    // { icon: <BarChart3 size={20} />, name: 'Analytics', href: '/admin/analytics' },
     { icon: <Settings size={20} />, name: 'Settings', href: '/admin/settings' },
   ];
 
