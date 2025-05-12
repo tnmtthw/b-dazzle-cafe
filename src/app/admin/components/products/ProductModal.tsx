@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, ImagePlus, Save } from 'lucide-react';
+import { X, DollarSign, ImagePlus } from 'lucide-react';
 
 // Product interface
 interface Product {
@@ -156,25 +156,25 @@ const ProductModal: React.FC<ProductModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    // Semi-transparent overlay
-    <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center z-50">
+    // Semi-transparent overlay with blur effect
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
       {/* Modal container */}
-      <div className="bg-white rounded-lg p-6 w-full max-w-3xl mx-auto shadow-xl">
+      <div className="bg-white rounded-lg w-full max-w-3xl mx-auto shadow-xl">
         {/* Modal header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900">
             {modalType === 'add' ? 'Add New Product' : 'Edit Product'}
           </h2>
           <button 
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-500"
+            className="text-gray-400 hover:text-gray-500 transition-colors"
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
         
         {/* Form */}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Left column - Image preview */}
             <div className="col-span-1">
@@ -329,17 +329,17 @@ const ProductModal: React.FC<ProductModalProps> = ({
           </div>
           
           {/* Action buttons */}
-          <div className="mt-6 flex justify-end space-x-3">
+          <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-primary"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-primary transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-brown-primary border border-transparent rounded-md hover:bg-brown-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-primary"
+              className="px-4 py-2 text-sm font-medium text-white bg-brown-primary border border-transparent rounded-md hover:bg-brown-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-primary transition-colors"
             >
               {modalType === 'add' ? 'Add Product' : 'Save Changes'}
             </button>

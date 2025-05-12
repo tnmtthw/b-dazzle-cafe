@@ -4,17 +4,54 @@ import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Search, RefreshCw, UserPlus, Filter, Download } from 'lucide-react';
 import UserTable, { User, UserRole } from '../components/UserTable';
+import UserEditModal from '../components/UserEditModal';
+import UserDeleteModal from '../components/UserDeleteModal';
 import EspressoSpinner from '@/component/EspressoSpinner';
 import toast, { Toaster } from 'react-hot-toast';
+
+// Sample users for testing - in a real app this would come from an API
+const sampleUsers: User[] = [
+  { 
+    id: '1', 
+    name: 'John Doe', 
+    email: 'john@example.com', 
+    role: 'Admin', 
+    phone: '+1234567890',
+    createdAt: new Date().toISOString(),
+    verified: true
+  },
+  { 
+    id: '2', 
+    name: 'Jane Smith', 
+    email: 'jane@example.com', 
+    role: 'User', 
+    phone: '+0987654321',
+    createdAt: new Date().toISOString(),
+    verified: true
+  },
+  { 
+    id: '3', 
+    name: 'Bob Johnson', 
+    email: 'bob@example.com', 
+    role: 'Unverified',
+    phone: '',
+    createdAt: new Date().toISOString(),
+    verified: false
+  },
+];
 
 const UserManagementPage = () => {
   const { data: session, status } = useSession();
   const [searchTerm, setSearchTerm] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showAddUserModal, setShowAddUserModal] = useState(false);
-  const [showEditUserModal, setShowEditUserModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [users, setUsers] = useState<User[]>(sampleUsers);
+  
+  // Modal states
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   // This would be replaced with API fetching in a real application
   const refreshUsers = async () => {
@@ -26,7 +63,23 @@ const UserManagementPage = () => {
     }, 1000);
   };
 
-  // Handlers for user management
+  // Handler for delete action - explicitly takes a string userId
+  const handleDeleteUser = (userId: string) => {
+    // Find the user by ID
+    const userToDelete = users.find(user => user.id === userId);
+    if (userToDelete) {
+      setCurrentUser(userToDelete);
+      setIsDeleteModalOpen(true);
+    }
+  };
+
+  // Handler for edit action - explicitly takes a User object
+  const handleEditUser = (user: User) => {
+    setCurrentUser(user);
+    setIsEditModalOpen(true);
+  };
+
+  // Handler for role change - takes a userId string
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
     // Show loading toast
     const loadingToast = toast.loading('Updating account type...');
@@ -34,15 +87,16 @@ const UserManagementPage = () => {
     // Simulate API request delay
     setTimeout(() => {
       toast.dismiss(loadingToast);
+      // Update local state
+      setUsers(prev => prev.map(user => 
+        user.id === userId ? { ...user, role: newRole } : user
+      ));
       toast.success(`Account type updated to ${newRole}`);
     }, 1000);
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    // Confirm deletion
-    if (!confirm('Are you sure you want to delete this account? This action cannot be undone.')) {
-      return;
-    }
+  const handleDeleteConfirm = async () => {
+    if (!currentUser) return;
     
     // Show loading toast
     const loadingToast = toast.loading('Deleting account...');
@@ -50,13 +104,66 @@ const UserManagementPage = () => {
     // Simulate API request delay
     setTimeout(() => {
       toast.dismiss(loadingToast);
+      // Update local state
+      setUsers(prev => prev.filter(user => user.id !== currentUser.id));
       toast.success('Account deleted successfully');
+      setIsDeleteModalOpen(false);
     }, 1000);
   };
 
-  const handleEditUser = (user: User) => {
-    setCurrentUser(user);
-    setShowEditUserModal(true);
+  const handleAddUser = (userData: any) => {
+    // Show loading toast
+    const loadingToast = toast.loading('Creating account...');
+    
+    // Simulate API request delay
+    setTimeout(() => {
+      toast.dismiss(loadingToast);
+      
+      // Create a new user with a unique ID
+      const newUser: User = {
+        id: Date.now().toString(),
+        name: userData.name,
+        email: userData.email,
+        role: userData.role as UserRole,
+        phone: userData.phone || '',
+        createdAt: new Date().toISOString(),
+        verified: userData.role !== 'Unverified'
+      };
+      
+      // Update local state
+      setUsers(prev => [...prev, newUser]);
+      
+      toast.success('Account created successfully');
+      setIsAddModalOpen(false);
+    }, 1000);
+  };
+
+  const handleUpdateUser = (userData: any) => {
+    if (!currentUser) return;
+    
+    // Show loading toast
+    const loadingToast = toast.loading('Updating account...');
+    
+    // Simulate API request delay
+    setTimeout(() => {
+      toast.dismiss(loadingToast);
+      
+      // Update local state
+      setUsers(prev => prev.map(user => 
+        user.id === currentUser.id 
+          ? { 
+              ...user, 
+              name: userData.name,
+              role: userData.role as UserRole,
+              phone: userData.phone || '',
+              verified: userData.role !== 'Unverified'
+            } 
+          : user
+      ));
+      
+      toast.success('Account updated successfully');
+      setIsEditModalOpen(false);
+    }, 1000);
   };
 
   // Loading state
@@ -80,6 +187,17 @@ const UserManagementPage = () => {
     );
   }
 
+  // Filter users based on search term and role filter
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = 
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    
+    return matchesSearch && matchesRole;
+  });
+
   return (
     <div className="p-6">
       <Toaster position="bottom-right" />
@@ -92,7 +210,7 @@ const UserManagementPage = () => {
         
         <div className="flex space-x-2 mt-4 md:mt-0">
           <button
-            onClick={() => setShowAddUserModal(true)}
+            onClick={() => setIsAddModalOpen(true)}
             className="bg-brown-primary text-white px-4 py-2 rounded-lg flex items-center hover:bg-brown-primary-hover transition-colors"
           >
             <UserPlus className="h-4 w-4 mr-2" />
@@ -148,142 +266,35 @@ const UserManagementPage = () => {
       
       {/* User Table */}
       <UserTable 
-        users={[]} // Empty array will use sample data from UserTable
+        users={filteredUsers}
         onRoleChange={handleRoleChange}
         onDeleteUser={handleDeleteUser}
         onEditUser={handleEditUser}
       />
       
-      {/* Add User Modal - in a real app, this would be a separate component */}
-      {showAddUserModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Add New Account</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-brown-primary focus:border-brown-primary"
-                  placeholder="Enter user's full name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-brown-primary focus:border-brown-primary"
-                  placeholder="Enter user's email"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Account Type
-                </label>
-                <select className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-brown-primary focus:border-brown-primary">
-                  <option value="User">Customer Account</option>
-                  <option value="Admin">Admin Account</option>
-                </select>
-              </div>
-              <div className="flex justify-end space-x-2 pt-4">
-                <button
-                  onClick={() => setShowAddUserModal(false)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    toast.success('Account added successfully');
-                    setShowAddUserModal(false);
-                  }}
-                  className="px-4 py-2 bg-brown-primary text-white rounded-lg hover:bg-brown-primary-hover"
-                >
-                  Add Account
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Add User Modal */}
+      <UserEditModal 
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSave={handleAddUser}
+        user={undefined}
+      />
       
-      {/* Edit User Modal - in a real app, this would be a separate component */}
-      {showEditUserModal && currentUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Edit Account: {currentUser.name}</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-brown-primary focus:border-brown-primary"
-                  defaultValue={currentUser.name}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-brown-primary focus:border-brown-primary"
-                  defaultValue={currentUser.email}
-                  disabled
-                />
-                <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone
-                </label>
-                <input
-                  type="text"
-                  className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-brown-primary focus:border-brown-primary"
-                  defaultValue={currentUser.phone || ''}
-                  placeholder="Enter phone number"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Account Type
-                </label>
-                <select 
-                  className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-brown-primary focus:border-brown-primary"
-                  defaultValue={currentUser.role}
-                >
-                  <option value="User">Customer Account</option>
-                  <option value="Admin">Admin Account</option>
-                  <option value="Unverified">Unverified Account</option>
-                </select>
-              </div>
-              <div className="flex justify-end space-x-2 pt-4">
-                <button
-                  onClick={() => setShowEditUserModal(false)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    toast.success('Account updated successfully');
-                    setShowEditUserModal(false);
-                  }}
-                  className="px-4 py-2 bg-brown-primary text-white rounded-lg hover:bg-brown-primary-hover"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Edit User Modal */}
+      <UserEditModal 
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleUpdateUser}
+        user={currentUser || undefined}
+      />
+      
+      {/* Delete Confirmation Modal */}
+      <UserDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        userName={currentUser?.name || ''}
+      />
     </div>
   );
 };
