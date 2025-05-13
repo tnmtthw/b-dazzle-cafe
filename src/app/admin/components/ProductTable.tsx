@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  PlusCircle, 
-  Search, 
-  Edit, 
-  Trash2, 
-  ArrowUp, 
+import {
+  PlusCircle,
+  Search,
+  Edit,
+  Trash2,
+  ArrowUp,
   ArrowDown,
   ChevronLeft,
   ChevronRight,
@@ -17,103 +17,40 @@ import {
   Coffee,
   ChevronDown
 } from 'lucide-react';
+import toast from 'react-hot-toast';
+
 import ProductModal from './products/ProductModal';
 import DeleteConfirmModal from './products/DeleteConfirmModal';
 
-// Product interface
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  stock: string;
-  sales: number;
-  image: string;
-  status: 'Active' | 'Inactive';
-  description?: string;
-}
+import EspressoSpinner from '@/component/EspressoSpinner';
+import { useProduct } from "@/data/product";
+import { Product } from "@/lib/type";
 
 const ProductTable: React.FC = () => {
-  // Sample products data
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: '1',
-      name: 'Cappuccino',
-      category: 'Espresso',
-      price: 120,
-      stock: 'In Stock',
-      sales: 250,
-      image: '/img/products/coffee.png',
-      status: 'Active',
-      description: 'A classic Italian coffee drink prepared with espresso, hot milk, and steamed-milk foam'
-    },
-    {
-      id: '2',
-      name: 'Caramel Macchiato',
-      category: 'Espresso',
-      price: 140,
-      stock: 'In Stock',
-      sales: 180,
-      image: '/img/products/coffee.png',
-      status: 'Active',
-      description: 'Espresso with steamed milk and vanilla, topped with caramel sauce'
-    },
-    {
-      id: '3',
-      name: 'Chicken Sandwich',
-      category: 'Snacks',
-      price: 130,
-      stock: 'Low Stock',
-      sales: 95,
-      image: '/img/products/coffee.png',
-      status: 'Active',
-      description: 'Grilled chicken with lettuce, tomato, and special sauce on freshly baked bread'
-    },
-    {
-      id: '4',
-      name: 'Chocolate Croissant',
-      category: 'Snacks',
-      price: 85,
-      stock: 'Out of Stock',
-      sales: 120,
-      image: '/img/products/coffee.png',
-      status: 'Inactive',
-      description: 'Buttery croissant filled with rich chocolate'
-    },
-    {
-      id: '5',
-      name: 'Spaghetti Carbonara',
-      category: 'Pasta',
-      price: 180,
-      stock: 'In Stock',
-      sales: 75,
-      image: '/img/products/coffee.png',
-      status: 'Active',
-      description: 'Classic Italian pasta with eggs, cheese, bacon, and black pepper'
-    }
-  ]);
-
   // State for search and filter
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
-  
+
   // State for sorting
   const [sortField, setSortField] = useState<keyof Product>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  
+
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
-  
+
   // State for modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [modalType, setModalType] = useState<'add' | 'edit'>('add');
-  
+
   // State for delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+
+  // Fetch product data
+  const { data: products, error, isLoading, mutate } = useProduct();
 
   // Handle opening add product modal
   const handleAddProduct = () => {
@@ -136,38 +73,75 @@ const ProductTable: React.FC = () => {
   };
 
   // Handle product deletion
-  const handleDeleteProduct = () => {
+  const handleDeleteProduct = async () => {
     if (productToDelete) {
-      setProducts(products.filter(p => p.id !== productToDelete.id));
+      try {
+        const toastId = toast.loading('Deleting product...');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/product?id=${productToDelete.id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          toast.success('Product deleted successfully', { id: toastId });
+          // Refresh the product list
+          mutate();
+        } else {
+          const error = await response.json();
+          toast.error(error.message || 'Failed to delete product', { id: toastId });
+        }
+      } catch (error) {
+        toast.error('An error occurred while deleting the product');
+      }
     }
+    setIsDeleteModalOpen(false);
   };
 
   // Handle saving a product (add or edit)
-  const handleSaveProduct = (productData: Partial<Product>) => {
-    if (modalType === 'add') {
-      // Create a new product with a generated ID
-      const newProduct: Product = {
-        id: Date.now().toString(),
-        name: productData.name || '',
-        category: productData.category || 'Espresso',
-        price: productData.price || 0,
-        stock: productData.stock || 'In Stock',
-        sales: 0,
-        image: productData.image || '/img/products/coffee.png',
-        status: productData.status || 'Active',
-        description: productData.description
-      };
-      
-      setProducts([...products, newProduct]);
-    } else if (modalType === 'edit' && editingProduct) {
-      // Update existing product
-      setProducts(products.map(p => 
-        p.id === editingProduct.id 
-          ? { ...p, ...productData } 
-          : p
-      ));
+  const handleSaveProduct = async (productData: Partial<Product>) => {
+    try {
+      const toastId = toast.loading(modalType === 'add' ? 'Adding product...' : 'Updating product...');
+
+      if (modalType === 'add') {
+        // Create a new product
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/product`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(productData),
+        });
+
+        if (response.ok) {
+          toast.success('Product added successfully', { id: toastId });
+          // Refresh the product list
+          mutate();
+        } else {
+          const error = await response.json();
+          toast.error(error.message || 'Failed to add product', { id: toastId });
+        }
+      } else if (modalType === 'edit' && editingProduct) {
+        // Update an existing product
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/product?id=${editingProduct.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(productData),
+        });
+
+        if (response.ok) {
+          toast.success('Product updated successfully', { id: toastId });
+          // Refresh the product list
+          mutate();
+        } else {
+          const error = await response.json();
+          toast.error(error.message || 'Failed to update product', { id: toastId });
+        }
+      }
+    } catch (error) {
+      toast.error('An error occurred while saving the product');
     }
-    
+
     setIsModalOpen(false);
   };
 
@@ -190,6 +164,23 @@ const ProductTable: React.FC = () => {
     setSelectedStatus('All');
   };
 
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedStatus]);
+
+  // Loading state
+  if (isLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <EspressoSpinner />
+    </div>
+  );
+
+  // Error state
+  if (error) return (
+    <p className="text-center text-red-500">Error loading products.</p>
+  );
+
   // Categories for filtering
   const categories = [
     'All',
@@ -202,18 +193,18 @@ const ProductTable: React.FC = () => {
   ];
 
   // Apply filters and sorting
-  const filteredAndSortedProducts = [...products]
+  const filteredAndSortedProducts = products ? [...products]
     // Filter by search term
-    .filter(product => 
+    .filter(product =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
     )
     // Filter by category
-    .filter(product => 
+    .filter(product =>
       selectedCategory === 'All' || product.category === selectedCategory
     )
     // Filter by status
-    .filter(product => 
+    .filter(product =>
       selectedStatus === 'All' || product.status === selectedStatus
     )
     // Sort by field
@@ -222,20 +213,20 @@ const ProductTable: React.FC = () => {
       if (typeof a[sortField] === 'string' && typeof b[sortField] === 'string') {
         const aValue = ((a[sortField] as string) || '').toLowerCase();
         const bValue = ((b[sortField] as string) || '').toLowerCase();
-        return sortDirection === 'asc' 
+        return sortDirection === 'asc'
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       } else {
         // Handle numeric or other values with null checks
         const aValue = a[sortField] ?? 0; // Use nullish coalescing to provide a default value
         const bValue = b[sortField] ?? 0;
-        
+
         if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortDirection === 'asc' 
+          return sortDirection === 'asc'
             ? aValue - bValue
             : bValue - aValue;
         }
-        
+
         // Handle mixed or non-numeric types safely
         const aStr = String(aValue);
         const bStr = String(bValue);
@@ -243,7 +234,7 @@ const ProductTable: React.FC = () => {
           ? aStr.localeCompare(bStr)
           : bStr.localeCompare(aStr);
       }
-    });
+    }) : [];
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedProducts.length / itemsPerPage);
@@ -251,17 +242,12 @@ const ProductTable: React.FC = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredAndSortedProducts.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Reset to first page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedCategory, selectedStatus]);
-
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-900">Products Management</h1>
-        
+
         <button
           onClick={handleAddProduct}
           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brown-primary hover:bg-brown-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-primary"
@@ -270,7 +256,7 @@ const ProductTable: React.FC = () => {
           Add Product
         </button>
       </div>
-      
+
       {/* Filters */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex flex-col md:flex-row gap-4 justify-between mb-6">
@@ -297,7 +283,7 @@ const ProductTable: React.FC = () => {
               )}
             </div>
           </div>
-          
+
           {/* Filter dropdowns */}
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Category filter */}
@@ -320,7 +306,7 @@ const ProductTable: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Status filter */}
             <div className="w-full sm:w-48">
               <div className="relative">
@@ -341,7 +327,7 @@ const ProductTable: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Reset filters button */}
             <button
               onClick={resetFilters}
@@ -352,104 +338,104 @@ const ProductTable: React.FC = () => {
             </button>
           </div>
         </div>
-        
+
         {/* Products table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button 
+                  <button
                     onClick={() => handleSort('name')}
                     className="group flex items-center space-x-1"
                   >
                     <span>Product</span>
                     <span className="flex flex-col">
-                      <ArrowUp 
-                        className={`h-3 w-3 ${sortField === 'name' && sortDirection === 'asc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`} 
+                      <ArrowUp
+                        className={`h-3 w-3 ${sortField === 'name' && sortDirection === 'asc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`}
                       />
-                      <ArrowDown 
-                        className={`h-3 w-3 -mt-1 ${sortField === 'name' && sortDirection === 'desc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`} 
+                      <ArrowDown
+                        className={`h-3 w-3 -mt-1 ${sortField === 'name' && sortDirection === 'desc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`}
                       />
                     </span>
                   </button>
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button 
+                  <button
                     onClick={() => handleSort('category')}
                     className="group flex items-center space-x-1"
                   >
                     <span>Category</span>
                     <span className="flex flex-col">
-                      <ArrowUp 
-                        className={`h-3 w-3 ${sortField === 'category' && sortDirection === 'asc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`} 
+                      <ArrowUp
+                        className={`h-3 w-3 ${sortField === 'category' && sortDirection === 'asc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`}
                       />
-                      <ArrowDown 
-                        className={`h-3 w-3 -mt-1 ${sortField === 'category' && sortDirection === 'desc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`} 
+                      <ArrowDown
+                        className={`h-3 w-3 -mt-1 ${sortField === 'category' && sortDirection === 'desc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`}
                       />
                     </span>
                   </button>
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button 
+                  <button
                     onClick={() => handleSort('price')}
                     className="group flex items-center space-x-1"
                   >
                     <span>Price</span>
                     <span className="flex flex-col">
-                      <ArrowUp 
-                        className={`h-3 w-3 ${sortField === 'price' && sortDirection === 'asc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`} 
+                      <ArrowUp
+                        className={`h-3 w-3 ${sortField === 'price' && sortDirection === 'asc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`}
                       />
-                      <ArrowDown 
-                        className={`h-3 w-3 -mt-1 ${sortField === 'price' && sortDirection === 'desc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`} 
+                      <ArrowDown
+                        className={`h-3 w-3 -mt-1 ${sortField === 'price' && sortDirection === 'desc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`}
                       />
                     </span>
                   </button>
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button 
+                  <button
                     onClick={() => handleSort('stock')}
                     className="group flex items-center space-x-1"
                   >
                     <span>Stock</span>
                     <span className="flex flex-col">
-                      <ArrowUp 
-                        className={`h-3 w-3 ${sortField === 'stock' && sortDirection === 'asc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`} 
+                      <ArrowUp
+                        className={`h-3 w-3 ${sortField === 'stock' && sortDirection === 'asc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`}
                       />
-                      <ArrowDown 
-                        className={`h-3 w-3 -mt-1 ${sortField === 'stock' && sortDirection === 'desc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`} 
+                      <ArrowDown
+                        className={`h-3 w-3 -mt-1 ${sortField === 'stock' && sortDirection === 'desc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`}
                       />
                     </span>
                   </button>
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button 
+                  <button
                     onClick={() => handleSort('sales')}
                     className="group flex items-center space-x-1"
                   >
                     <span>Sales</span>
                     <span className="flex flex-col">
-                      <ArrowUp 
-                        className={`h-3 w-3 ${sortField === 'sales' && sortDirection === 'asc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`} 
+                      <ArrowUp
+                        className={`h-3 w-3 ${sortField === 'sales' && sortDirection === 'asc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`}
                       />
-                      <ArrowDown 
-                        className={`h-3 w-3 -mt-1 ${sortField === 'sales' && sortDirection === 'desc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`} 
+                      <ArrowDown
+                        className={`h-3 w-3 -mt-1 ${sortField === 'sales' && sortDirection === 'desc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`}
                       />
                     </span>
                   </button>
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button 
+                  <button
                     onClick={() => handleSort('status')}
                     className="group flex items-center space-x-1"
                   >
                     <span>Status</span>
                     <span className="flex flex-col">
-                      <ArrowUp 
-                        className={`h-3 w-3 ${sortField === 'status' && sortDirection === 'asc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`} 
+                      <ArrowUp
+                        className={`h-3 w-3 ${sortField === 'status' && sortDirection === 'asc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`}
                       />
-                      <ArrowDown 
-                        className={`h-3 w-3 -mt-1 ${sortField === 'status' && sortDirection === 'desc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`} 
+                      <ArrowDown
+                        className={`h-3 w-3 -mt-1 ${sortField === 'status' && sortDirection === 'desc' ? 'text-brown-primary' : 'text-gray-400 group-hover:text-gray-500'}`}
                       />
                     </span>
                   </button>
@@ -472,9 +458,9 @@ const ProductTable: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0">
-                          <img 
-                            src={product.image} 
-                            alt={product.name} 
+                          <img
+                            src={product.image}
+                            alt={product.name}
                             className="h-10 w-10 rounded-full object-cover"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = '/img/products/coffee.png';
@@ -494,13 +480,12 @@ const ProductTable: React.FC = () => {
                       ₱{product.price.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        product.stock === 'In Stock' 
-                          ? 'bg-green-100 text-green-800' 
-                          : product.stock === 'Low Stock'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.stock === 'In Stock'
+                        ? 'bg-green-100 text-green-800'
+                        : product.stock === 'Low Stock'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                        }`}>
                         {product.stock}
                       </span>
                     </td>
@@ -508,11 +493,10 @@ const ProductTable: React.FC = () => {
                       {product.sales}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        product.status === 'Active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.status === 'Active'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-800'
+                        }`}>
                         {product.status}
                       </span>
                     </td>
@@ -536,7 +520,7 @@ const ProductTable: React.FC = () => {
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
@@ -584,16 +568,16 @@ const ProductTable: React.FC = () => {
                     <span className="sr-only">Previous</span>
                     <ChevronLeft className="h-5 w-5" />
                   </button>
-                  
+
                   {/* Page numbers */}
                   {Array.from({ length: totalPages }).map((_, index) => {
                     const pageNumber = index + 1;
                     // Show current page, first, last, and pages around current
-                    const shouldShowPage = 
-                      pageNumber === 1 || 
-                      pageNumber === totalPages || 
+                    const shouldShowPage =
+                      pageNumber === 1 ||
+                      pageNumber === totalPages ||
                       Math.abs(pageNumber - currentPage) <= 1;
-                    
+
                     // Show ellipsis for gaps
                     if (!shouldShowPage) {
                       if (pageNumber === 2 || pageNumber === totalPages - 1) {
@@ -605,22 +589,21 @@ const ProductTable: React.FC = () => {
                       }
                       return null;
                     }
-                    
+
                     return (
                       <button
                         key={pageNumber}
                         onClick={() => setCurrentPage(pageNumber)}
-                        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
-                          pageNumber === currentPage
-                            ? 'bg-brown-primary text-white'
-                            : 'bg-white text-gray-700 hover:bg-gray-50'
-                        }`}
+                        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${pageNumber === currentPage
+                          ? 'bg-brown-primary text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                          }`}
                       >
                         {pageNumber}
                       </button>
                     );
                   })}
-                  
+
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
@@ -643,7 +626,7 @@ const ProductTable: React.FC = () => {
           </div>
         )}
       </div>
-      
+
       {/* Product Modal */}
       <ProductModal
         isOpen={isModalOpen}
@@ -652,7 +635,7 @@ const ProductTable: React.FC = () => {
         product={editingProduct}
         modalType={modalType}
       />
-      
+
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
         isOpen={isDeleteModalOpen}

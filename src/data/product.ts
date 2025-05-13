@@ -1,3 +1,5 @@
+// src\data\product.ts
+
 import useSWR from 'swr';
 
 const fetcher = async (url: string | URL | Request) => {
@@ -9,11 +11,12 @@ const fetcher = async (url: string | URL | Request) => {
 };
 
 export function useProduct() {
-  const { data, error, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/product`, fetcher);
+  const { data, error, isLoading, mutate } = useSWR(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/product`, fetcher);
 
   return {
     data,
     error,
-    isLoading
+    isLoading,
+    mutate
   };
 }

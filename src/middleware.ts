@@ -7,7 +7,8 @@ export default auth((req) => {
   const user = req.auth?.user;
 
   // const url = "http://localhost:3000";
-  const url = "https://b-dazzle-cafe.vercel.app"; 
+  // const url = "https://b-dazzle-cafe.vercel.app"; 
+  const url = "http://localhost:3000"; 
   const isRootRoute = req.nextUrl.pathname === "/";
   const isAuthRoute = req.nextUrl.pathname.includes("/account/");
   const isPrivateRoute = privateRoutes.includes(req.nextUrl.pathname);

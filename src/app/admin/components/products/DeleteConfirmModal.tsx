@@ -21,12 +21,12 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Semi-transparent backdrop with blur effect */}
-      <div 
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm" 
+      <div
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       ></div>
-      
+
       {/* Modal dialog */}
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto relative z-10">
         {/* Header */}
@@ -35,7 +35,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
             <AlertTriangle className="h-5 w-5 mr-2" />
             <h3 className="text-lg font-medium">Delete Confirmation</h3>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-500 transition-colors"
             aria-label="Close"
@@ -43,7 +43,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
             <X size={20} />
           </button>
         </div>
-        
+
         {/* Content */}
         <div className="p-6">
           <p className="text-gray-700 mb-4">
@@ -53,7 +53,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
             This action cannot be undone and will permanently remove this item from your system.
           </p>
         </div>
-        
+
         {/* Footer with action buttons */}
         <div className="px-6 py-4 bg-gray-50 rounded-b-lg flex justify-end space-x-3">
           <button

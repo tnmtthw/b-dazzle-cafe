@@ -13,7 +13,7 @@ model User {
   email       String       @unique
   password    String
   role        String       @default("Unverified")
-  phone String?
+  phone       String?
   bio         String?
   address     String?
   createdAt   DateTime     @default(now())
@@ -26,13 +26,21 @@ model Product {
   id          String       @id @default(uuid()) @db.Uuid
   image       String
   name        String
+  category    String?      @default("Espresso")
   description String
   price       Int
-  sold        Int?         @default(0)
+  sales       Int?         @default(0)
+  stock       String       @default("In Stock")
+  status      Status       @default(Active)
   createdAt   DateTime     @default(now())
 
   cartItems   CartItem[]
   orderItems  OrderItem[]
+}
+
+enum Status {
+  Active
+  Inactive
 }
 
 model CartItem {

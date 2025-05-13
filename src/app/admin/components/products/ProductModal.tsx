@@ -1,20 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, ImagePlus } from 'lucide-react';
-
-// Product interface
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  stock: string;
-  sales: number;
-  image: string;
-  status: 'Active' | 'Inactive';
-  description?: string;
-}
+import { X, DollarSign, ImagePlus, PhilippinePeso } from 'lucide-react';
+import { Product } from "@/lib/type";
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -85,19 +73,19 @@ const ProductModal: React.FC<ProductModalProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    
+
     let parsedValue: string | number | boolean = value;
-    
+
     // Parse numeric values
     if (name === 'price') {
       parsedValue = parseFloat(value) || 0;
     }
-    
+
     setFormData({
       ...formData,
       [name]: parsedValue
     });
-    
+
     // Clear error when field is modified
     if (errors[name]) {
       setErrors({
@@ -114,7 +102,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
       ...formData,
       image: value
     });
-    
+
     // Update preview if URL is valid
     if (value) {
       setImagePreview(value);
@@ -126,19 +114,19 @@ const ProductModal: React.FC<ProductModalProps> = ({
   // Validate form before submission
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name?.trim()) {
       newErrors.name = 'Product name is required';
     }
-    
+
     if (!formData.category) {
       newErrors.category = 'Category is required';
     }
-    
+
     if (formData.price === undefined || formData.price <= 0) {
       newErrors.price = 'Price must be greater than 0';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -146,7 +134,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       onSave(formData);
     }
@@ -165,14 +153,14 @@ const ProductModal: React.FC<ProductModalProps> = ({
           <h2 className="text-xl font-bold text-gray-900">
             {modalType === 'add' ? 'Add New Product' : 'Edit Product'}
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-500 transition-colors"
           >
             <X size={20} />
           </button>
         </div>
-        
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -183,15 +171,15 @@ const ProductModal: React.FC<ProductModalProps> = ({
                   Product Image
                 </label>
                 <div className="mt-1 border-2 border-gray-300 border-dashed rounded-md p-2 h-44 flex items-center justify-center">
-                  <img 
-                    src={imagePreview} 
-                    alt="Product Preview" 
+                  <img
+                    src={imagePreview}
+                    alt="Product Preview"
                     className="max-h-40 max-w-full object-contain"
                     onError={() => setImagePreview('/img/products/coffee.png')}
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
                   Image URL
@@ -211,7 +199,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* Right column - Product details */}
             <div className="col-span-2 space-y-4">
               <div>
@@ -229,7 +217,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 />
                 {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
@@ -250,14 +238,14 @@ const ProductModal: React.FC<ProductModalProps> = ({
                   </select>
                   {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
                 </div>
-                
+
                 <div>
                   <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
                     Price (₱)
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <DollarSign className="h-5 w-5 text-gray-400" />
+                      <PhilippinePeso className="h-5 w-5 text-gray-400" />
                     </div>
                     <input
                       type="number"
@@ -274,7 +262,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                   {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
@@ -294,7 +282,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
                     Product Status
@@ -311,7 +299,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                   </select>
                 </div>
               </div>
-              
+
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                   Description
@@ -327,7 +315,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
               </div>
             </div>
           </div>
-          
+
           {/* Action buttons */}
           <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end space-x-3">
             <button

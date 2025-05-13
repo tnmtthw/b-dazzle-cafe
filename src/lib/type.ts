@@ -2,13 +2,16 @@ import { DateTime } from 'next-auth/providers/kakao';
 
 export interface Product {
     id: string;
-    image: string;
     name: string;
-    description: string;
+    category: string;
     price: number;
-    sold: number;
-    createdAt: DateTime;
-}
+    stock: string;
+    sales: number;
+    image: string;
+    status: 'Active' | 'Inactive';
+    description?: string;
+    createdAt: string;
+  }
 
 export interface Cart {
     id: string;
