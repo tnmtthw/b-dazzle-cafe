@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Mail, 
-  Phone, 
-  ShieldCheck, 
-  ChevronDown, 
-  ChevronUp, 
-  Edit, 
-  Trash2, 
+import {
+  Mail,
+  Phone,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+  Edit,
+  Trash2,
   User as UserIcon,
   Clock,
   CheckCircle,
@@ -38,52 +38,14 @@ interface UserTableProps {
   onEditUser?: (user: User) => void;
 }
 
-// Sample user data
-const sampleUsers: User[] = [
-  {
-    id: "usr_123456",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    role: "User",
-    phone: "+63 912 345 6789",
-    address: "123 Coffee Lane, Brgy. Espresso, Manila, Philippines",
-    bio: "Coffee enthusiast and regular customer",
-    createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days ago
-    verified: true
-  },
-  {
-    id: "usr_789012",
-    name: "Maria Garcia",
-    email: "maria.garcia@example.com",
-    role: "Admin",
-    phone: "+63 923 456 7890",
-    address: "456 Bean Street, Makati City, Philippines",
-    bio: "Store manager and coffee connoisseur",
-    createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(), // 180 days ago
-    verified: true
-  },
-  {
-    id: "usr_345678",
-    name: "Robert Lee",
-    email: "robert.lee@example.com",
-    role: "Unverified",
-    phone: "+63 934 567 8901",
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-    verified: false
-  }
-];
-
-const UserTable: React.FC<UserTableProps> = ({ 
-  users = [], 
+const UserTable: React.FC<UserTableProps> = ({
+  users = [],
   onRoleChange,
   onDeleteUser,
   onEditUser
 }) => {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<Record<string, UserRole>>({});
-  
-  // Use sample data if users array is empty
-  const displayUsers = users.length > 0 ? users : sampleUsers;
 
   // Toggle user details
   const toggleUserDetails = (userId: string) => {
@@ -109,43 +71,93 @@ const UserTable: React.FC<UserTableProps> = ({
   };
 
   // Submit role change
-  const handleRoleChange = (userId: string) => {
-    if (selectedRole[userId] && onRoleChange) {
-      onRoleChange(userId, selectedRole[userId]);
+  const handleRoleChange = async (userId: string) => {
+    if (!selectedRole[userId]) return;
+
+    try {
+      // If onRoleChange is provided, use it
+      if (onRoleChange) {
+        onRoleChange(userId, selectedRole[userId]);
+        return;
+      }
+
+      // Otherwise, make direct API call
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          role: selectedRole[userId]
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update user role');
+      }
+
+      // Show success notification or refresh data
+      alert(`Role updated successfully to ${selectedRole[userId]}`);
+      // Refresh page or data
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating role:', error);
+      alert('Failed to update role');
     }
   };
 
-  // Placeholder functions
-  const defaultRoleChange = (userId: string, newRole: UserRole) => {
-    console.log(`Role would change for user ${userId} to ${newRole}`);
-  };
-
-  const defaultDeleteUser = (userId: string) => {
-    console.log(`User ${userId} would be deleted`);
-  };
-
+  // Default Edit handler with simple alert
   const defaultEditUser = (user: User) => {
     console.log(`Edit user`, user);
+    // Could implement a simple edit form here
+    alert(`Edit functionality for user ${user.name} would be implemented here`);
+  };
+
+  // Default Delete handler using the API endpoint
+  const defaultDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'} /api/user ? id = ${userId} `, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete user');
+      }
+
+      alert('User deleted successfully');
+      // Refresh page or data
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Failed to delete user');
+    }
   };
 
   // Use provided handlers or defaults
-  const handleRoleChangeSubmit = onRoleChange || defaultRoleChange;
+  const handleRoleChangeSubmit = onRoleChange || handleRoleChange;
   const handleDeleteUser = onDeleteUser || defaultDeleteUser;
   const handleEditUser = onEditUser || defaultEditUser;
 
-  // Get status badge for verified/unverified users
-  const getVerificationBadge = (verified: boolean) => {
-    return verified ? (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-        <CheckCircle className="h-3 w-3 mr-1" />
-        Verified
-      </span>
-    ) : (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-        <Clock className="h-3 w-3 mr-1" />
-        Unverified
-      </span>
-    );
+  // Get status badge for verification status based on role
+  const getVerificationBadge = (user: User) => {
+    if (user.role === 'Unverified') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          <XCircle className="h-3 w-3 mr-1" />
+          Unverified
+        </span>
+      );
+    } else {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Verified
+        </span>
+      );
+    }
   };
 
   // Get status badge for user role
@@ -175,7 +187,7 @@ const UserTable: React.FC<UserTableProps> = ({
     );
   };
 
-  if (displayUsers.length === 0) {
+  if (users.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-6 text-center">
         <p className="text-gray-500">No users found.</p>
@@ -210,7 +222,7 @@ const UserTable: React.FC<UserTableProps> = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {displayUsers.map((user) => (
+            {users.map((user) => (
               <React.Fragment key={user.id}>
                 <tr className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -227,7 +239,7 @@ const UserTable: React.FC<UserTableProps> = ({
                     <div className="text-sm text-gray-900">{user.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {getVerificationBadge(user.verified)}
+                    {getVerificationBadge(user)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getRoleBadge(user.role)}
@@ -319,7 +331,7 @@ const UserTable: React.FC<UserTableProps> = ({
                                 Change Account Type
                               </label>
                               <div className="flex space-x-2">
-                                <select 
+                                <select
                                   className="rounded-lg border-gray-300 shadow-sm block w-full focus:ring-brown-primary focus:border-brown-primary sm:text-sm"
                                   value={selectedRole[user.id] || user.role}
                                   onChange={(e) => handleRoleSelect(user.id, e.target.value as UserRole)}
@@ -336,10 +348,31 @@ const UserTable: React.FC<UserTableProps> = ({
                                 </button>
                               </div>
                             </div>
-                            
-                            {!user.verified && (
+
+                            {user.role === 'Unverified' && (
                               <div className="mb-4">
                                 <button
+                                  onClick={async () => {
+                                    try {
+                                      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user?id=${user.id}`, {
+                                        method: 'PATCH',
+                                        headers: {
+                                          'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({
+                                          role: 'User',
+                                        }),
+                                      });
+
+                                      if (!response.ok) throw new Error('Failed to verify user');
+
+                                      alert('User verified successfully');
+                                      window.location.reload();
+                                    } catch (error) {
+                                      console.error('Error verifying user:', error);
+                                      alert('Failed to verify user');
+                                    }
+                                  }}
                                   className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 w-full"
                                 >
                                   <CheckCircle className="mr-2 h-5 w-5" />
@@ -350,7 +383,23 @@ const UserTable: React.FC<UserTableProps> = ({
 
                             <div>
                               <button
-                                onClick={() => handleDeleteUser(user.id)}
+                                onClick={async () => {
+                                  if (!confirm('Are you sure you want to delete this user?')) return;
+
+                                  try {
+                                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user`, {
+                                      method: 'DELETE',
+                                    });
+
+                                    if (!response.ok) throw new Error('Failed to delete user');
+
+                                    alert('User deleted successfully');
+                                    window.location.reload();
+                                  } catch (error) {
+                                    console.error('Error deleting user:', error);
+                                    alert('Failed to delete user');
+                                  }
+                                }}
                                 className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 w-full"
                               >
                                 <XCircle className="mr-2 h-5 w-5" />
