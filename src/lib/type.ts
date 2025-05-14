@@ -33,3 +33,24 @@ export interface Cart {
     createdAt: number;
     product: Product;
 }
+
+export interface Order {
+  id: string;
+  userId: string;
+  total: number;
+  status: OrderStatus;
+  createdAt: string;
+  items: OrderItem[];
+  user: User;
+}
+
+export interface OrderItem {
+  id: string;
+  orderId: string;
+  productId: string;
+  quantity: number;
+  price: number;
+  product: Product;
+}
+
+export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';

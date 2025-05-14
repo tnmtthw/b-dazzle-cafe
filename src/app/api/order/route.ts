@@ -4,32 +4,41 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-  
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
-    }
-  
-    try {
-      const orders = await prisma.order.findMany({
-        where: { userId },
-        include: {
-          items: {
-            include: { product: true },
+  const { searchParams } = new URL(req.url);
+  const userId = searchParams.get('userId');
+
+  try {
+    const orders = await prisma.order.findMany({
+      where: userId ? { userId } : undefined,
+      include: {
+        items: {
+          include: {
+            product: true,
           },
         },
-        orderBy: {
-          createdAt: 'desc',
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            bio: true,
+            address: true,
+            createdAt: true,
+          },
         },
-      });
-  
-      return NextResponse.json(orders);
-    } catch (error) {
-      console.error(error);
-      return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
-    }
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return NextResponse.json(orders);
+  } catch (error) {
+    console.error('Failed to fetch orders:', error);
+    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
   }
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
