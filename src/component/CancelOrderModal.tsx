@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, AlertTriangle, CheckCircle } from 'lucide-react';
 
 // Define the cancellation reasons
-export const cancellationReasons = [
+export const cancellationReasons: string[] = [
   "Changed my mind",
   "Found a better price elsewhere",
   "Ordered by mistake",
@@ -15,12 +15,21 @@ export const cancellationReasons = [
   "Other (please specify)"
 ];
 
+// Interface for CancelOrderModal props
+interface CancelOrderModalProps {
+  isOpen: boolean;
+  orderId: string;
+  orderNumber: string;
+  onClose: () => void;
+  onCancel: (orderId: string, reason: string, additionalInfo: string) => Promise<void>;
+}
+
 /**
  * Cancel Order Modal Component
  * 
  * This component displays a modal to confirm order cancellation and collect a reason.
  */
-export const CancelOrderModal = ({ 
+export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({ 
   isOpen, 
   orderId, 
   orderNumber, 
@@ -28,9 +37,9 @@ export const CancelOrderModal = ({
   onCancel 
 }) => {
   // State
-  const [reason, setReason] = useState('');
-  const [additionalInfo, setAdditionalInfo] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [reason, setReason] = useState<string>('');
+  const [additionalInfo, setAdditionalInfo] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   
   // Reset form when modal opens
   useEffect(() => {
@@ -42,7 +51,7 @@ export const CancelOrderModal = ({
   }, [isOpen, orderId]);
 
   // Handle form submission
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<void> => {
     if (!reason) {
       return; // Validation: Reason is required
     }
@@ -159,12 +168,19 @@ export const CancelOrderModal = ({
   );
 };
 
+// Interface for CancellationSuccessModal props
+interface CancellationSuccessModalProps {
+  isOpen: boolean;
+  orderNumber: string;
+  onClose: () => void;
+}
+
 /**
  * Success Modal Component
  * 
  * This component displays a success message after an order has been cancelled.
  */
-export const CancellationSuccessModal = ({ 
+export const CancellationSuccessModal: React.FC<CancellationSuccessModalProps> = ({ 
   isOpen, 
   orderNumber, 
   onClose 

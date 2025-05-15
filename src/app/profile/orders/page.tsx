@@ -123,9 +123,9 @@ const OrderHistoryPage = () => {
   const [activeTab, setActiveTab] = useState<'all' | Order['status']>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Cancel order modal states
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+// Cancel order modal states
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState<boolean>(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
   const [orderToCancel, setOrderToCancel] = useState<{id: string, number: string} | null>(null);
 
   // Get navbar height to adjust top padding
@@ -236,7 +236,7 @@ const OrderHistoryPage = () => {
   };
 
   // Initiate order cancellation
-  const handleInitiateCancel = (orderId: string) => {
+  const handleInitiateCancel = (orderId: string): void => {
     const order = processedOrders.find(o => o.id === orderId);
     if (order) {
       setOrderToCancel({
@@ -248,7 +248,7 @@ const OrderHistoryPage = () => {
   };
 
   // Process order cancellation
-  const handleCancelOrder = async (orderId: string, reason: string, additionalInfo: string) => {
+  const handleCancelOrder = async (orderId: string, reason: string, additionalInfo: string): Promise<void> => {
     // Show loading toast
     const loadingToast = toast.loading("Cancelling your order...");
     
