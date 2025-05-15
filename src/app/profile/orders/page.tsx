@@ -22,6 +22,10 @@ import {
 import Link from 'next/link';
 import EspressoSpinner from '@/component/EspressoSpinner';
 import { Nunito } from 'next/font/google';
+import { toast, Toaster } from 'react-hot-toast';
+
+// Import modal components
+import { CancelOrderModal, CancellationSuccessModal } from '@/component/CancelOrderModal';
 
 // Initialize Nunito font
 const nunito = Nunito({
@@ -119,6 +123,11 @@ const OrderHistoryPage = () => {
   const [activeTab, setActiveTab] = useState<'all' | Order['status']>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Cancel order modal states
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<{id: string, number: string} | null>(null);
+
   // Get navbar height to adjust top padding
   const [navbarHeight, setNavbarHeight] = useState(72); // Default value
 
@@ -143,7 +152,7 @@ const OrderHistoryPage = () => {
   }, []);
 
   // Fetch orders from API
-  const { data: orders, error, isLoading } = useSWR(
+  const { data: orders, error, isLoading, mutate } = useSWR(
     session?.user?.id ? `/api/order?userId=${session.user.id}` : null,
     fetcher
   );
@@ -226,6 +235,62 @@ const OrderHistoryPage = () => {
     }
   };
 
+  // Initiate order cancellation
+  const handleInitiateCancel = (orderId: string) => {
+    const order = processedOrders.find(o => o.id === orderId);
+    if (order) {
+      setOrderToCancel({
+        id: order.id,
+        number: order.id.substring(0, 8).toUpperCase()
+      });
+      setIsCancelModalOpen(true);
+    }
+  };
+
+  // Process order cancellation
+  const handleCancelOrder = async (orderId: string, reason: string, additionalInfo: string) => {
+    // Show loading toast
+    const loadingToast = toast.loading("Cancelling your order...");
+    
+    try {
+      // In a real app, you would make an API call to cancel the order
+      const response = await fetch(`/api/order/cancel`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderId,
+          reason,
+          additionalInfo,
+          userId: session?.user?.id
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to cancel order');
+      }
+
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+      
+      // Close the cancel modal
+      setIsCancelModalOpen(false);
+      
+      // Show success modal
+      setIsSuccessModalOpen(true);
+      
+      // Refetch orders to update the UI
+      mutate();
+
+    } catch (error) {
+      // Dismiss loading toast and show error
+      toast.dismiss(loadingToast);
+      toast.error("Failed to cancel order. Please try again.");
+      console.error("Error cancelling order:", error);
+    }
+  };
+
   // Format date function
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -254,6 +319,25 @@ const OrderHistoryPage = () => {
       className={`${nunito.className} max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-gray-50 min-h-screen pb-12`}
       style={{ paddingTop: `${navbarHeight + 24}px` }} // Dynamic padding based on navbar height
     >
+      {/* Toast notifications */}
+      <Toaster position="bottom-right" reverseOrder={false} />
+      
+      {/* Cancel Order Modal */}
+      <CancelOrderModal 
+        isOpen={isCancelModalOpen}
+        orderId={orderToCancel?.id || ''}
+        orderNumber={orderToCancel?.number || ''}
+        onClose={() => setIsCancelModalOpen(false)}
+        onCancel={handleCancelOrder}
+      />
+      
+      {/* Cancellation Success Modal */}
+      <CancellationSuccessModal 
+        isOpen={isSuccessModalOpen}
+        orderNumber={orderToCancel?.number || ''}
+        onClose={() => setIsSuccessModalOpen(false)}
+      />
+
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
         <p className="mt-2 text-gray-600">View and track your order history</p>
@@ -356,15 +440,22 @@ const OrderHistoryPage = () => {
                       <Eye className="ml-1 h-4 w-4" />
                     </button>
 
-                    {order.status === 'pending' || order.status === 'processing' ? (
-                      <button className="text-sm text-red-600 hover:text-red-700 font-medium">
+                    {/* Show cancel button only for pending or processing orders */}
+                    {(order.status === 'pending' || order.status === 'processing') && (
+                      <button 
+                        onClick={() => handleInitiateCancel(order.id)}
+                        className="text-sm text-red-600 hover:text-red-700 font-medium"
+                      >
                         Cancel Order
                       </button>
-                    ) : order.status === 'shipped' ? (
+                    )}
+
+                    {/* Show track button only for shipped orders */}
+                    {order.status === 'shipped' && (
                       <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
                         Track Order
                       </button>
-                    ) : null}
+                    )}
                   </div>
 
                   {/* Expanded Details */}
@@ -552,9 +643,20 @@ const OrderHistoryPage = () => {
                       <Eye className="ml-1 h-4 w-4" />
                     </button>
 
+                    {/* Show reorder button for delivered orders */}
                     {order.status === 'delivered' && (
                       <button className="text-sm text-brown-primary hover:text-brown-primary-hover font-medium">
                         Reorder
+                      </button>
+                    )}
+                    
+                    {/* Show cancel button for pending/processing orders in past orders list */}
+                    {(order.status === 'pending' || order.status === 'processing') && (
+                      <button 
+                        onClick={() => handleInitiateCancel(order.id)}
+                        className="text-sm text-red-600 hover:text-red-700 font-medium"
+                      >
+                        Cancel Order
                       </button>
                     )}
                   </div>
