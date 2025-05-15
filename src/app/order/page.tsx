@@ -20,7 +20,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { Nunito } from 'next/font/google';
 
 import { Cart } from "@/lib/type";
-import EspressoSpinner from '@/component/EspressoSpinner';
+import { EspressoSpinner } from '@/components';
 
 // Initialize Nunito font
 const nunito = Nunito({

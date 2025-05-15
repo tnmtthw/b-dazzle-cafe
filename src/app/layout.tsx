@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import "./globals.css";
-import { Navbar } from "@/component/Navbar";
+import { Navbar } from "@/components/layout";
 import { Playfair_Display, Nunito } from "next/font/google";
 
 // ✅ Configure the fonts

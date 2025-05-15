@@ -22,7 +22,7 @@ import toast from 'react-hot-toast';
 import ProductModal from './products/ProductModal';
 import DeleteConfirmModal from './products/DeleteConfirmModal';
 
-import EspressoSpinner from '@/component/EspressoSpinner';
+import { EspressoSpinner } from '@/components';
 import { useProduct } from "@/data/product";
 import { Product } from "@/lib/type";
 

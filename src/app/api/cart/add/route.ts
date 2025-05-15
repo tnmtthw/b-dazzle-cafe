@@ -5,10 +5,23 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
   try {
+    // Get parameters either from query string or request body
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-    const productId = searchParams.get('productId');
-    const quantity = parseInt(searchParams.get('quantity') || '0');
+    let userId = searchParams.get('userId');
+    let productId = searchParams.get('productId');
+    let quantity = parseInt(searchParams.get('quantity') || '0');
+
+    // Check if we need to parse the request body
+    if (!userId || !productId || isNaN(quantity) || quantity <= 0) {
+      try {
+        const body = await req.json();
+        userId = body.userId || userId;
+        productId = body.productId || productId;
+        quantity = body.quantity || quantity;
+      } catch (e) {
+        // If req.json() fails, continue with query params
+      }
+    }
 
     if (!userId || !productId || isNaN(quantity) || quantity <= 0) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });

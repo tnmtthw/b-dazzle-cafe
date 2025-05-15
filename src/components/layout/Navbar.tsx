@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 
-import MainNavbar from "@/component/MainNavbar";
+import MainNavbar from "@/components/layout/MainNavbar";
 import { toSlug } from "@/utils/toSlug";
 
 export const Navbar = () => {
@@ -29,3 +29,5 @@ export const Navbar = () => {
 
     return pathname.startsWith("/user") ? "Testing" : <MainNavbar />;
 };
+
+export default Navbar; 

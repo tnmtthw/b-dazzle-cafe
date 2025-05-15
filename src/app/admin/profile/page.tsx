@@ -14,7 +14,7 @@ import {
   ShieldCheck,
   Clock
 } from 'lucide-react';
-import EspressoSpinner from '@/component/EspressoSpinner';
+import { EspressoSpinner } from '@/components';
 import toast, { Toaster } from 'react-hot-toast';
 
 const AdminProfilePage = () => {

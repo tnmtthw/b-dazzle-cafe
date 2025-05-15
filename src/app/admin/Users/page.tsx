@@ -10,7 +10,7 @@ import UserDeleteModal from '../components/UserDeleteModal';
 import toast, { Toaster } from 'react-hot-toast';
 
 import { useUser } from "@/data/user";
-import EspressoSpinner from '@/component/EspressoSpinner';
+import { EspressoSpinner } from '@/components';
 
 const UserManagementPage = () => {
   const { data: session, status } = useSession();

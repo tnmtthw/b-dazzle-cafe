@@ -6,7 +6,7 @@ import { toast } from "react-hot-toast";
 
 import { useProduct } from "@/data/product";
 import { Product } from "@/lib/type";
-import EspressoSpinner from '@/component/EspressoSpinner';
+import { EspressoSpinner } from '@/components';
 
 const ProductCard = () => {
     const { data: products, error, isLoading } = useProduct();

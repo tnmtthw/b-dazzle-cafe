@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import AdminMainNav from '@/app/admin/components/AdminMainNav';
 import AdminDashboard from '@/app/admin/components/AdminDashboard';
+import { EspressoSpinner } from '@/components';
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
@@ -13,8 +14,8 @@ export default function AdminPage() {
   // Show loading state
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brown-primary"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <EspressoSpinner size="lg" />
       </div>
     );
   }

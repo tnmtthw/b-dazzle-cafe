@@ -56,11 +56,24 @@ const ForgotPasswordPage = () => {
       // Show loading toast
       const loadingToast = toast.loading("Processing your request...");
       
-      // For frontend-only demo, we'll simulate the API call with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call our API to send the reset email
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: values.email
+        }),
+      });
       
       // Dismiss loading toast
       toast.dismiss(loadingToast);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to send reset email');
+      }
       
       // Show success toast
       toast.success("Reset link sent to your email");

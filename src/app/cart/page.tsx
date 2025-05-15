@@ -21,7 +21,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { Nunito } from 'next/font/google';
 
 import { Cart } from "@/lib/type";
-import EspressoSpinner from '@/component/EspressoSpinner';
+import { EspressoSpinner } from '@/components';
 import Link from 'next/link';
 
 // Initialize Nunito font

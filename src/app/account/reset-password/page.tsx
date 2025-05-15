@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Eye, EyeOff, CheckCircle } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -12,9 +12,27 @@ const inputStyles = "font-nunito bg-white bg-opacity-95 text-black px-4 w-full h
 
 const ResetPasswordPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [token, setToken] = useState('');
+  const [email, setEmail] = useState('');
+  const [isInvalid, setIsInvalid] = useState(false);
+
+  // Extract token and email from URL on page load
+  useEffect(() => {
+    const token = searchParams.get('token');
+    const email = searchParams.get('email');
+
+    if (!token || !email) {
+      setIsInvalid(true);
+      toast.error("Invalid or missing reset token");
+    } else {
+      setToken(token);
+      setEmail(email);
+    }
+  }, [searchParams]);
 
   // Password validation schema
   const passwordValidationSchema = Yup.object({
@@ -40,11 +58,26 @@ const ResetPasswordPage = () => {
       // Show loading toast
       const loadingToast = toast.loading("Updating your password...");
       
-      // For frontend-only demo, we'll simulate the API call with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call the reset password API
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token,
+          email,
+          password: values.password
+        }),
+      });
       
       // Dismiss loading toast
       toast.dismiss(loadingToast);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to reset password');
+      }
       
       // Show success toast
       toast.success("Password updated successfully");
@@ -53,9 +86,39 @@ const ResetPasswordPage = () => {
       setIsSuccess(true);
       
     } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Please try again.");
     }
   };
+
+  // If token is invalid, show error message
+  if (isInvalid) {
+    return (
+      <div className="bg-[url('/img/bg-main.png')] min-h-screen bg-cover bg-center flex items-center justify-center py-12">
+        <div className="w-full max-w-md mx-auto px-8 pt-6">
+          <div className="bg-brown-primary rounded-3xl shadow-2xl overflow-hidden">
+            <div className="p-8 text-center">
+              <div className="flex justify-center mb-6">
+                <img src="/img/logo.png" alt="B'Dazzle Cafe" className="h-12 w-auto" />
+              </div>
+              
+              <h2 className="text-2xl font-bold text-white mb-6">Invalid Reset Link</h2>
+              
+              <p className="text-white/80 text-sm mb-8">
+                The password reset link is invalid or expired. Please request a new password reset link.
+              </p>
+              
+              <Link 
+                href="/account/forgot-password"
+                className="bg-yellow-primary font-bold text-brown-primary w-full h-11 rounded-lg hover:bg-yellow-400 focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition-all text-sm font-nunito inline-flex items-center justify-center"
+              >
+                Request New Link
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Success view
   if (isSuccess) {

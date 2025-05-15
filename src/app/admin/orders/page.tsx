@@ -7,7 +7,7 @@ import toast, { Toaster } from 'react-hot-toast';
 
 import OrderTable from '../components/OrderTable';
 import { Order, OrderStatus } from '@/lib/type';
-import EspressoSpinner from '@/component/EspressoSpinner';
+import { EspressoSpinner } from '@/components';
 import { useOrder } from '@/data/order';
 
 const AdminOrdersPage = () => {

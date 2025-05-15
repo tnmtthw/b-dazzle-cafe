@@ -7,6 +7,7 @@ import { Heart, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
 import useSWR from 'swr';
+import { EspressoSpinner } from '@/components';
 
 // Initialize Nunito font
 const nunito = Nunito({
@@ -87,8 +88,16 @@ const ProductsPage = () => {
     }
 
     try {
-      const res = await fetch(`/api/cart/add?userId=${session.user?.id}&productId=${productId}&quantity=1`, {
+      const res = await fetch(`/api/cart/add`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: session.user?.id,
+          productId: productId,
+          quantity: 1
+        })
       });
 
       if (res.ok) {
@@ -123,7 +132,7 @@ const ProductsPage = () => {
         className={`${nunito.className} min-h-screen bg-gray-50 flex items-center justify-center`}
         style={{ paddingTop: `${navbarHeight}px` }}
       >
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brown-primary"></div>
+        <EspressoSpinner size="lg" />
       </div>
     );
   }

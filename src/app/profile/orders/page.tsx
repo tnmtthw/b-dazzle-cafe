@@ -17,15 +17,13 @@ import {
   PackageOpen,
   ArchiveX,
   Coffee,
-  MapPin
+  MapPin,
+  RefreshCw
 } from 'lucide-react';
 import Link from 'next/link';
-import EspressoSpinner from '@/component/EspressoSpinner';
+import { EspressoSpinner, CancelOrderModal, CancellationSuccessModal } from '@/components';
 import { Nunito } from 'next/font/google';
 import { toast, Toaster } from 'react-hot-toast';
-
-// Import modal components
-import { CancelOrderModal, CancellationSuccessModal } from '@/component/CancelOrderModal';
 
 // Initialize Nunito font
 const nunito = Nunito({
@@ -122,11 +120,19 @@ const OrderHistoryPage = () => {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | Order['status']>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [reorderingId, setReorderingId] = useState<string | null>(null);
 
 // Cancel order modal states
   const [isCancelModalOpen, setIsCancelModalOpen] = useState<boolean>(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
-  const [orderToCancel, setOrderToCancel] = useState<{id: string, number: string} | null>(null);
+  const [orderToCancel, setOrderToCancel] = useState<{
+    id: string, 
+    number: string, 
+    total?: number,
+    date?: string
+  } | null>(null);
+  const [cancellationInProgress, setCancellationInProgress] = useState<boolean>(false);
+  const [recentlyCancelledId, setRecentlyCancelledId] = useState<string | null>(null);
 
   // Get navbar height to adjust top padding
   const [navbarHeight, setNavbarHeight] = useState(72); // Default value
@@ -154,7 +160,11 @@ const OrderHistoryPage = () => {
   // Fetch orders from API
   const { data: orders, error, isLoading, mutate } = useSWR(
     session?.user?.id ? `/api/order?userId=${session.user.id}` : null,
-    fetcher
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      refreshInterval: 30000, // Refresh every 30 seconds
+    }
   );
 
   if (isLoading) {
@@ -241,7 +251,9 @@ const OrderHistoryPage = () => {
     if (order) {
       setOrderToCancel({
         id: order.id,
-        number: order.id.substring(0, 8).toUpperCase()
+        number: order.id.substring(0, 8).toUpperCase(),
+        total: order.total,
+        date: formatDate(order.createdAt)
       });
       setIsCancelModalOpen(true);
     }
@@ -249,8 +261,8 @@ const OrderHistoryPage = () => {
 
   // Process order cancellation
   const handleCancelOrder = async (orderId: string, reason: string, additionalInfo: string): Promise<void> => {
-    // Show loading toast
-    const loadingToast = toast.loading("Cancelling your order...");
+    // Set cancellation in progress state - this will show the EspressoSpinner
+    setCancellationInProgress(true);
     
     try {
       // In a real app, you would make an API call to cancel the order
@@ -271,24 +283,42 @@ const OrderHistoryPage = () => {
         throw new Error('Failed to cancel order');
       }
 
-      // Dismiss loading toast
-      toast.dismiss(loadingToast);
-      
       // Close the cancel modal
       setIsCancelModalOpen(false);
+      
+      // Store recently cancelled order ID for highlighting
+      setRecentlyCancelledId(orderId);
       
       // Show success modal
       setIsSuccessModalOpen(true);
       
       // Refetch orders to update the UI
-      mutate();
+      await mutate();
+
+      // Clear recently cancelled status after some time
+      setTimeout(() => {
+        setRecentlyCancelledId(null);
+      }, 10000); // 10 seconds
 
     } catch (error) {
-      // Dismiss loading toast and show error
-      toast.dismiss(loadingToast);
+      // Show error toast
       toast.error("Failed to cancel order. Please try again.");
       console.error("Error cancelling order:", error);
+    } finally {
+      setCancellationInProgress(false);
     }
+  };
+
+  // Handle close of success modal
+  const handleSuccessModalClose = (): void => {
+    setIsSuccessModalOpen(false);
+    setActiveTab('cancelled');
+  };
+
+  // Continue shopping after cancellation
+  const handleContinueShopping = (): void => {
+    setIsSuccessModalOpen(false);
+    window.location.href = '/products';
   };
 
   // Format date function
@@ -314,6 +344,68 @@ const OrderHistoryPage = () => {
     return new Date(dateString).toLocaleDateString('en-US', options);
   };
 
+  // Reorder functionality to add all items from a previous order to cart
+  const handleReorder = async (order: Order) => {
+    if (!session?.user?.id) {
+      toast.error('Please sign in to add items to cart');
+      return;
+    }
+
+    setReorderingId(order.id);
+    
+    try {
+      let successCount = 0;
+      
+      // Process all order items sequentially
+      for (const item of order.items) {
+        // Add each item to cart
+        const response = await fetch(`/api/cart/add`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: session.user.id,
+            productId: item.productId,
+            quantity: item.quantity
+          })
+        });
+        
+        if (response.ok) {
+          successCount++;
+        }
+      }
+      
+      // Show success message
+      if (successCount > 0) {
+        toast.success(`${successCount} items added to cart!`);
+        
+        // Custom toast with button
+        toast.custom((t) => (
+          <div className="bg-white shadow-lg rounded-lg p-4 border border-gray-200 flex items-center justify-between">
+            <span className="text-gray-800">View your cart?</span>
+            <button 
+              className="ml-4 px-3 py-1 bg-brown-primary text-white rounded-md text-sm"
+              onClick={() => {
+                toast.dismiss(t.id);
+                window.location.href = '/cart';
+              }}
+            >
+              Go to Cart
+            </button>
+          </div>
+        ), { duration: 5000 });
+      } else {
+        toast.error("No items could be added to cart");
+      }
+    } catch (error) {
+      toast.error("Failed to reorder. Please try again.");
+      console.error("Error reordering:", error);
+    } finally {
+      setReorderingId(null);
+    }
+  };
+
   return (
     <div
       className={`${nunito.className} max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-gray-50 min-h-screen pb-12`}
@@ -327,6 +419,8 @@ const OrderHistoryPage = () => {
         isOpen={isCancelModalOpen}
         orderId={orderToCancel?.id || ''}
         orderNumber={orderToCancel?.number || ''}
+        orderTotal={orderToCancel?.total}
+        orderDate={orderToCancel?.date}
         onClose={() => setIsCancelModalOpen(false)}
         onCancel={handleCancelOrder}
       />
@@ -335,7 +429,9 @@ const OrderHistoryPage = () => {
       <CancellationSuccessModal 
         isOpen={isSuccessModalOpen}
         orderNumber={orderToCancel?.number || ''}
-        onClose={() => setIsSuccessModalOpen(false)}
+        onClose={handleSuccessModalClose}
+        onViewOrders={handleSuccessModalClose}
+        onContinueShopping={handleContinueShopping}
       />
 
       <div className="mb-6">
@@ -369,33 +465,56 @@ const OrderHistoryPage = () => {
                         </div>
                         <p className="text-xs mt-1">Confirmed</p>
                       </div>
-                      <div className="flex-grow h-1 bg-gray-200 mx-2">
+                      <div className="flex-grow h-1 bg-gray-200 mx-2 overflow-hidden">
                         <div
-                          className={`h-full bg-green-500 ${order.status === 'pending' ? 'w-1/3' : order.status === 'processing' ? 'w-1/2' : 'w-2/3'}`}
+                          className={`h-full bg-green-500 transition-all duration-1000 ease-out ${
+                            order.status !== 'cancelled' ? 'w-full' : 'w-0'
+                          } ${order.status === 'pending' ? 'animate-pulse' : ''}`}
                         />
                       </div>
                       <div className="flex flex-col items-center">
-                        <div className={`w-8 h-8 rounded-full ${order.status === 'pending' ? 'bg-blue-100 text-blue-500' : 'bg-green-500 text-white'} flex items-center justify-center`}>
+                        <div className={`w-8 h-8 rounded-full transition-colors duration-500 ${
+                          order.status === 'pending' ? 'bg-blue-100 text-blue-500' : 
+                          (order.status === 'processing' || order.status === 'shipped' || order.status === 'delivered') ? 'bg-green-500 text-white' : 
+                          'bg-gray-200 text-gray-400'
+                        } flex items-center justify-center`}>
                           <PackageOpen size={16} />
                         </div>
                         <p className="text-xs mt-1">Preparing</p>
                       </div>
-                      <div className="flex-grow h-1 bg-gray-200 mx-2">
+                      <div className="flex-grow h-1 bg-gray-200 mx-2 overflow-hidden">
                         <div
-                          className={`h-full bg-green-500 ${order.status === 'shipped' ? 'w-1/2' : 'w-0'}`}
+                          className={`h-full bg-green-500 transition-all duration-1000 ease-out ${
+                            order.status === 'processing' ? 'animate-pulse w-1/2' :
+                            (order.status === 'shipped' || order.status === 'delivered') ? 'w-full' :
+                            'w-0'
+                          }`}
                         />
                       </div>
                       <div className="flex flex-col items-center">
-                        <div className={`w-8 h-8 rounded-full ${order.status === 'shipped' ? 'bg-yellow-100 text-yellow-500' : 'bg-gray-200 text-gray-400'} flex items-center justify-center`}>
+                        <div className={`w-8 h-8 rounded-full transition-colors duration-500 ${
+                          order.status === 'shipped' ? 'bg-yellow-400 text-white animate-pulse' : 
+                          order.status === 'delivered' ? 'bg-green-500 text-white' : 
+                          'bg-gray-200 text-gray-400'
+                        } flex items-center justify-center`}>
                           <Truck size={16} />
                         </div>
                         <p className="text-xs mt-1">Shipped</p>
                       </div>
-                      <div className="flex-grow h-1 bg-gray-200 mx-2">
-                        <div className="h-full bg-green-500 w-0" />
+                      <div className="flex-grow h-1 bg-gray-200 mx-2 overflow-hidden">
+                        <div
+                          className={`h-full bg-green-500 transition-all duration-1000 ease-out ${
+                            order.status === 'shipped' ? 'animate-pulse w-1/2' :
+                            order.status === 'delivered' ? 'w-full' :
+                            'w-0'
+                          }`}
+                        />
                       </div>
                       <div className="flex flex-col items-center">
-                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
+                        <div className={`w-8 h-8 rounded-full transition-colors duration-500 ${
+                          order.status === 'delivered' ? 'bg-green-500 animate-bounce text-white' : 
+                          'bg-gray-200 text-gray-400'
+                        } flex items-center justify-center`}>
                           <CheckCircle size={16} />
                         </div>
                         <p className="text-xs mt-1">Delivered</p>
@@ -444,9 +563,23 @@ const OrderHistoryPage = () => {
                     {(order.status === 'pending' || order.status === 'processing') && (
                       <button 
                         onClick={() => handleInitiateCancel(order.id)}
-                        className="text-sm text-red-600 hover:text-red-700 font-medium"
+                        className="text-sm text-red-600 hover:text-red-700 font-medium flex items-center"
+                        disabled={cancellationInProgress}
                       >
-                        Cancel Order
+                        {cancellationInProgress && orderToCancel?.id === order.id ? (
+                          <>
+                            <svg className="animate-spin mr-2 h-4 w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <ArchiveX className="mr-1 h-4 w-4" />
+                            Cancel Order
+                          </>
+                        )}
                       </button>
                     )}
 
@@ -490,6 +623,18 @@ const OrderHistoryPage = () => {
                         <MapPin className="h-4 w-4 text-gray-500 mr-2 mt-0.5 flex-shrink-0" />
                         <span className="text-sm text-gray-600">{order.address}</span>
                       </div>
+
+                      {order.status === 'cancelled' && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="flex items-start">
+                            <AlertCircle className="h-4 w-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-sm font-medium text-red-700">Order Cancelled</p>
+                              <p className="text-xs text-gray-500">This order was cancelled and cannot be modified.</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -600,11 +745,14 @@ const OrderHistoryPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredOrders.map((order) => (
-              <div key={order.id} className={`bg-white rounded-lg shadow-sm overflow-hidden ${order.status === 'pending' || order.status === 'processing' ? 'border-l-4 border-blue-500' :
+              <div key={order.id} className={`bg-white rounded-lg shadow-sm overflow-hidden 
+                ${order.status === 'pending' || order.status === 'processing' ? 'border-l-4 border-blue-500' :
                   order.status === 'shipped' ? 'border-l-4 border-yellow-500' :
                     order.status === 'delivered' ? 'border-l-4 border-green-500' :
                       'border-l-4 border-red-500'
-                }`}>
+                }
+                ${recentlyCancelledId === order.id ? 'ring-2 ring-red-300 animate-pulse' : ''}
+              `}>
                 <div className="p-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -645,8 +793,24 @@ const OrderHistoryPage = () => {
 
                     {/* Show reorder button for delivered orders */}
                     {order.status === 'delivered' && (
-                      <button className="text-sm text-brown-primary hover:text-brown-primary-hover font-medium">
-                        Reorder
+                      <button 
+                        onClick={() => handleReorder(order)}
+                        className="text-sm text-brown-primary hover:text-brown-primary-hover font-medium flex items-center"
+                        disabled={reorderingId === order.id}
+                      >
+                        {reorderingId === order.id ? (
+                          <div className="flex items-center">
+                            <div className="mr-2 scale-50 origin-left">
+                              <EspressoSpinner size="sm" />
+                            </div>
+                            <span>Adding...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <RefreshCw className="mr-1 h-4 w-4" />
+                            Reorder
+                          </>
+                        )}
                       </button>
                     )}
                     
@@ -654,9 +818,23 @@ const OrderHistoryPage = () => {
                     {(order.status === 'pending' || order.status === 'processing') && (
                       <button 
                         onClick={() => handleInitiateCancel(order.id)}
-                        className="text-sm text-red-600 hover:text-red-700 font-medium"
+                        className="text-sm text-red-600 hover:text-red-700 font-medium flex items-center"
+                        disabled={cancellationInProgress}
                       >
-                        Cancel Order
+                        {cancellationInProgress && orderToCancel?.id === order.id ? (
+                          <>
+                            <svg className="animate-spin mr-2 h-4 w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <ArchiveX className="mr-1 h-4 w-4" />
+                            Cancel Order
+                          </>
+                        )}
                       </button>
                     )}
                   </div>
@@ -699,6 +877,18 @@ const OrderHistoryPage = () => {
                         <MapPin className="h-4 w-4 text-gray-500 mr-2 mt-0.5 flex-shrink-0" />
                         <span className="text-sm text-gray-600">{order.address}</span>
                       </div>
+
+                      {order.status === 'cancelled' && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="flex items-start">
+                            <AlertCircle className="h-4 w-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-sm font-medium text-red-700">Order Cancelled</p>
+                              <p className="text-xs text-gray-500">This order was cancelled and cannot be modified.</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
