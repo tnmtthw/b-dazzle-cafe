@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Eye, EyeOff } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import Link from "next/link";
 import * as Yup from "yup";
 
 const inputStyles = "font-nunito bg-white bg-opacity-95 text-black px-4 w-full h-11 rounded-lg placeholder:text-gray-500 text-sm font-medium focus:ring-2 focus:ring-yellow-primary focus:outline-none transition-all tracking-wide";
@@ -36,7 +37,7 @@ const SignInPage = () => {
         try {
             // Show loading toast
             const loadingToast = toast.loading("Signing in...");
-            
+
             const response = await signIn("credentials", {
                 email: values.email,
                 password: values.password,
@@ -74,7 +75,7 @@ const SignInPage = () => {
                     color: '#fff',
                 }
             }} />
-            
+
             <div className="w-full max-w-4xl mx-auto px-8 pt-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 overflow-hidden rounded-2xl shadow-2xl">
                     {/* Left side - Image (hidden on mobile) */}
@@ -151,7 +152,12 @@ const SignInPage = () => {
                                             <label htmlFor="remember" className="ms-2 text-gray-200 font-nunito">Remember Me</label>
                                         </div>
                                         <div>
-                                            <span className="underline cursor-pointer text-gray-200 hover:text-white transition-colors font-nunito">Forgot Password?</span>
+                                            <Link
+                                                href="/account/forgot-password"
+                                                className="underline cursor-pointer text-gray-200 hover:text-white transition-colors font-nunito"
+                                            >
+                                                Forgot Password?
+                                            </Link>
                                         </div>
                                     </div>
 
