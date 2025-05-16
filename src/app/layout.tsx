@@ -35,7 +35,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${nunito.variable}`}>
       <SessionProvider session={session}>
-        <body className="select-none">
+        <body className="select-none" suppressHydrationWarning>
           <Navbar />
           <main className="bg-gray-50 h-screen">{children}</main>
         </body>
