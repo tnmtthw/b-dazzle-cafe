@@ -21,7 +21,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import Link from 'next/link';
-import { EspressoSpinner, CancelOrderModal, CancellationSuccessModal } from '@/components';
+import { EspressoSpinner, CancelOrderModal ,CancellationSuccessModal} from '@/components/common';
 import { Nunito } from 'next/font/google';
 import { toast, Toaster } from 'react-hot-toast';
 
