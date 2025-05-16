@@ -7,7 +7,7 @@
     Edit, Phone, CheckCircle, X, Home, MapPin, Plus, ChevronDown, ChevronUp
   } from "lucide-react";
   import Link from "next/link";
-  import { EspressoSpinner } from "@/components";
+  import { EspressoSpinner } from "@/components/common";
   import { useRouter } from "next/navigation";
   import { Nunito } from 'next/font/google';
   import toast, { Toaster } from 'react-hot-toast';
