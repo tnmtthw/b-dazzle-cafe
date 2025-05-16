@@ -48,8 +48,8 @@ export const ResetPasswordEmail = ({
           To reset your password, click the button below. This link will expire in 30 minutes.
         </Text>
         <Section style={buttonContainer}>
-          {/* <Link style={button} href={`https://b-dazzle-cafe.vercel.app/account/reset-password/${resetToken}`}> */}
-          <Link style={button} href={`http://localhost:3000/account/reset-password/${resetToken}`}>
+          <Link style={button} href={`https://b-dazzle-cafe.vercel.app/account/reset-password/${resetToken}`}>
+            {/* <Link style={button} href={`http://localhost:3000/account/reset-password/${resetToken}`}> */}
             Reset your password
           </Link>
         </Section>
@@ -57,8 +57,8 @@ export const ResetPasswordEmail = ({
           If you're having trouble clicking the button, copy and paste the URL below into your web browser:
         </Text>
         <Text style={text}>
-          {/* <Link href={resetToken} style={link}>{`https://b-dazzle-cafe.vercel.app/account/reset-password/${resetToken}`}</Link> */}
-          <Link href={resetToken} style={link}>{`http://localhost:3000/account/reset-password/${resetToken}`}</Link>
+          <Link href={resetToken} style={link}>{`https://b-dazzle-cafe.vercel.app/account/reset-password/${resetToken}`}</Link>
+          {/* <Link href={resetToken} style={link}>{`http://localhost:3000/account/reset-password/${resetToken}`}</Link> */}
         </Text>
         <Text style={text}>
           Thank you for choosing B'Dazzle Cafe!
