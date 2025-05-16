@@ -101,9 +101,11 @@ export default function Navbar() {
         }`}
     >
       <div className="max-w-7xl mx-auto flex justify-between items-center">
-        {/* Logo */}
-        <Link href="/">
-          <img src="/img/logo.png" alt="B'Dazzle Cafe" className="h-8 w-auto" />
+        {/* Logo - Made bigger */}
+        <Link href="/" className="flex items-center">
+          <img src="/img/logo.png" alt="B'Dazzle Cafe" className="h-12 w-auto md:h-14" />
+          {/* Optional: Add name next to logo */}
+          <span className="ml-2 text-white font-playfair text-lg md:text-xl font-bold hidden sm:block">B'Dazzle</span>
         </Link>
 
         {/* Desktop Nav */}
@@ -339,4 +341,4 @@ export default function Navbar() {
       )}
     </header>
   );
-} 
+}
