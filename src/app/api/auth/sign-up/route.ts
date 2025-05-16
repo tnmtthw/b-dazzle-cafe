@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
+import nodemailer from 'nodemailer';
 import { render } from '@react-email/render';
 
 import { prisma } from '@/lib/prisma';
@@ -26,39 +27,27 @@ export async function POST(req: Request) {
       data: { name, email, password: hashedPassword },
     });
 
-    // Send verification email using fetch API to avoid spam filters
+    // Send verification email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASSWORD,
+      },
+    });
+
     const emailHtml = await render(
       SignupConfirmationEmail({ name: name, email })
     );
 
-    try {
-      // Send email using your server's API endpoint or a service like SendGrid
-      // You can use either your own configured mail server or a third-party service
-      // This example uses a simple fetch to an external API that you would need to set up
-      const emailResult = await fetch(process.env.EMAIL_API_ENDPOINT || 'https://api.youremailservice.com/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.EMAIL_API_KEY}`
-        },
-        body: JSON.stringify({
-          to: email,
-          from: {
-            email: process.env.EMAIL_FROM || 'no-reply@bdazzlecafe.com',
-            name: 'B-Dazzle Cafe'
-          },
-          subject: 'Please verify your account',
-          html: emailHtml,
-        })
-      });
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: 'Please verify your account',
+      html: emailHtml,
+    };
 
-      if (!emailResult.ok) {
-        console.error('Failed to send email:', await emailResult.text());
-      }
-    } catch (emailError) {
-      console.error('Error sending email:', emailError);
-      // Still create the user but log the email error
-    }
+    await transporter.sendMail(mailOptions);
 
     return NextResponse.json({ message: 'User created, verification email sent', userId: user.id }, { status: 201 });
   } catch (error) {
