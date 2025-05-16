@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { 
-  User as UserIcon, 
-  Mail, 
-  Phone, 
-  Lock, 
+import {
+  User as UserIcon,
+  Mail,
+  Phone,
+  Lock,
   Edit,
   Save,
   X,
@@ -14,19 +14,19 @@ import {
   ShieldCheck,
   Clock
 } from 'lucide-react';
-import { EspressoSpinner } from '@/components';
+import EspressoSpinner from "@/components/common/EspressoSpinner";
 import toast, { Toaster } from 'react-hot-toast';
 
 const AdminProfilePage = () => {
   const { data: session, status, update } = useSession();
-  
+
   // Profile state
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     name: '',
@@ -37,7 +37,7 @@ const AdminProfilePage = () => {
     newPassword: '',
     confirmPassword: ''
   });
-  
+
   // Update form data when session loads
   useEffect(() => {
     if (session?.user) {
@@ -52,7 +52,7 @@ const AdminProfilePage = () => {
       });
     }
   }, [session]);
-  
+
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -61,19 +61,29 @@ const AdminProfilePage = () => {
       [name]: value
     }));
   };
-  
+
   // Handle form submission
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Show loading toast
     const loadingToast = toast.loading('Updating profile...');
-    
+
     try {
-      // In a real app, this would be an API call
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const response = await fetch(`/api/auth/profile?id=${session?.user?.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          phone: formData.phone,
+          bio: formData.bio
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
+      }
+
       // Update session
       if (session) {
         await update({
@@ -86,7 +96,7 @@ const AdminProfilePage = () => {
           }
         });
       }
-      
+
       toast.dismiss(loadingToast);
       toast.success('Profile updated successfully');
       setIsEditing(false);
@@ -96,34 +106,34 @@ const AdminProfilePage = () => {
       console.error('Error updating profile:', error);
     }
   };
-  
+
   // Handle password change
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (formData.newPassword !== formData.confirmPassword) {
       toast.error('New passwords do not match');
       return;
     }
-    
+
     if (formData.newPassword.length < 8) {
       toast.error('Password must be at least 8 characters');
       return;
     }
-    
+
     // Show loading toast
     const loadingToast = toast.loading('Changing password...');
-    
+
     try {
       // In a real app, this would be an API call
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       toast.dismiss(loadingToast);
       toast.success('Password changed successfully');
       setIsChangingPassword(false);
-      
+
       // Reset password fields
       setFormData(prev => ({
         ...prev,
@@ -137,12 +147,12 @@ const AdminProfilePage = () => {
       console.error('Error changing password:', error);
     }
   };
-  
+
   // Handle logout
   const handleLogout = () => {
     signOut();
   };
-  
+
   // Loading state
   if (status === 'loading') {
     return (
@@ -151,7 +161,7 @@ const AdminProfilePage = () => {
       </div>
     );
   }
-  
+
   // Check if user is admin
   if (session?.user?.role !== 'Admin') {
     return (
@@ -163,13 +173,13 @@ const AdminProfilePage = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="p-6">
       <Toaster position="bottom-right" />
-      
+
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Admin Profile</h1>
-      
+
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         {/* Profile Header */}
         <div className="bg-gradient-to-r from-brown-primary to-brown-primary-hover h-32 relative">
@@ -182,7 +192,7 @@ const AdminProfilePage = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Admin badge */}
           <div className="absolute top-4 right-4">
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
@@ -191,21 +201,21 @@ const AdminProfilePage = () => {
             </span>
           </div>
         </div>
-        
+
         {/* Profile Content */}
         <div className="pt-16 pb-6 px-8">
           <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">{session?.user?.name}</h2>
               <p className="text-gray-600">{session?.user?.email}</p>
-              
+
               {/* Account creation date - in a real app, this would come from the user object */}
               <div className="flex items-center mt-2 text-xs text-gray-500">
                 <Clock className="h-3 w-3 mr-1" />
                 <span>Member since January 2023</span>
               </div>
             </div>
-            
+
             {isEditing ? (
               <div className="flex space-x-2">
                 <button
@@ -226,7 +236,7 @@ const AdminProfilePage = () => {
               </button>
             )}
           </div>
-          
+
           {/* Main Profile Form */}
           {isEditing ? (
             <form onSubmit={handleSaveProfile} className="space-y-4 mb-8">
@@ -244,7 +254,7 @@ const AdminProfilePage = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                   Email
@@ -259,7 +269,7 @@ const AdminProfilePage = () => {
                 />
                 <p className="mt-1 text-xs text-gray-500">Email address cannot be changed</p>
               </div>
-              
+
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                   Phone Number
@@ -274,7 +284,7 @@ const AdminProfilePage = () => {
                   placeholder="+63 900 000 0000"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
                   Bio
@@ -289,7 +299,7 @@ const AdminProfilePage = () => {
                   placeholder="Tell us a bit about yourself"
                 ></textarea>
               </div>
-              
+
               <div className="flex justify-end">
                 <button
                   type="submit"
@@ -306,7 +316,7 @@ const AdminProfilePage = () => {
                 {/* Basic Info Card */}
                 <div className="bg-gray-50 rounded-lg p-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
-                  
+
                   <div className="space-y-4">
                     <div className="flex">
                       <UserIcon className="h-5 w-5 text-gray-400 mr-3" />
@@ -315,7 +325,7 @@ const AdminProfilePage = () => {
                         <p className="mt-1">{session?.user?.name}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex">
                       <Mail className="h-5 w-5 text-gray-400 mr-3" />
                       <div>
@@ -323,7 +333,7 @@ const AdminProfilePage = () => {
                         <p className="mt-1">{session?.user?.email}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex">
                       <Phone className="h-5 w-5 text-gray-400 mr-3" />
                       <div>
@@ -333,11 +343,11 @@ const AdminProfilePage = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Account Card */}
                 <div className="bg-gray-50 rounded-lg p-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Account</h3>
-                  
+
                   <div className="space-y-4">
                     <div className="flex">
                       <ShieldCheck className="h-5 w-5 text-gray-400 mr-3" />
@@ -346,7 +356,7 @@ const AdminProfilePage = () => {
                         <p className="mt-1">Administrator</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex">
                       <Lock className="h-5 w-5 text-gray-400 mr-3" />
                       <div>
@@ -362,7 +372,7 @@ const AdminProfilePage = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Bio Section */}
               {session?.user?.bio && (
                 <div className="bg-gray-50 rounded-lg p-6">
@@ -374,12 +384,12 @@ const AdminProfilePage = () => {
               )}
             </div>
           )}
-          
+
           {/* Password Change Form */}
           {isChangingPassword && (
             <div className="border-t border-gray-200 pt-6 mt-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
-              
+
               <form onSubmit={handleChangePassword} className="space-y-4">
                 <div>
                   <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
@@ -413,7 +423,7 @@ const AdminProfilePage = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 <div>
                   <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
                     New Password
@@ -447,7 +457,7 @@ const AdminProfilePage = () => {
                   </div>
                   <p className="mt-1 text-xs text-gray-500">Password must be at least 8 characters long</p>
                 </div>
-                
+
                 <div>
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
                     Confirm New Password
@@ -480,7 +490,7 @@ const AdminProfilePage = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end space-x-3">
                   <button
                     type="button"
@@ -499,7 +509,7 @@ const AdminProfilePage = () => {
               </form>
             </div>
           )}
-          
+
           {/* Logout Button */}
           <div className="mt-8 pt-8 border-t border-gray-200">
             <button
