@@ -6,6 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Eye, EyeOff } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import * as Yup from "yup";
+import Link from 'next/link';
 
 const validationSchema = Yup.object({
     name: Yup.string().required("Name is required"),
@@ -39,7 +40,7 @@ const SignUpPage = () => {
         try {
             // Show loading toast
             const loadingToast = toast.loading("Creating your account...");
-            
+
             const res = await fetch('/api/auth/sign-up', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -59,7 +60,7 @@ const SignUpPage = () => {
                 // Show success toast
                 toast.success("Account created successfully! Check your email for verification.");
                 console.log("User registered", data);
-                
+
                 // Redirect after a short delay
                 setTimeout(() => {
                     router.push('/account/sign-in');
@@ -83,7 +84,7 @@ const SignUpPage = () => {
                     color: '#fff',
                 }
             }} />
-            
+
             <div className="w-full max-w-4xl mx-auto px-8 pt-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 overflow-hidden rounded-2xl shadow-2xl">
                     {/* Left side - Image (hidden on mobile) */}
@@ -93,7 +94,7 @@ const SignUpPage = () => {
                             <span>Cafe</span>
                         </h1>
                     </div>
-                    
+
                     {/* Right side - Form */}
                     <div className="bg-brown-primary lg:rounded-tr-[70px] lg:rounded-br-xl p-6 lg:p-8 space-y-3 text-white">
                         <h2 className="font-bold text-2xl mb-1">Sign up</h2>
@@ -142,14 +143,14 @@ const SignUpPage = () => {
                                                 placeholder="@#*%"
                                                 className={inputStyles}
                                             />
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
                                                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none transition-colors"
                                                 aria-label={showPassword ? "Hide password" : "Show password"}
                                             >
-                                                {showPassword ? 
-                                                    <EyeOff size={16} className="text-gray-600" /> : 
+                                                {showPassword ?
+                                                    <EyeOff size={16} className="text-gray-600" /> :
                                                     <Eye size={16} className="text-gray-600" />
                                                 }
                                             </button>
@@ -166,14 +167,14 @@ const SignUpPage = () => {
                                                 placeholder="Confirm Password"
                                                 className={inputStyles}
                                             />
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none transition-colors"
                                                 aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                                             >
-                                                {showConfirmPassword ? 
-                                                    <EyeOff size={16} className="text-gray-600" /> : 
+                                                {showConfirmPassword ?
+                                                    <EyeOff size={16} className="text-gray-600" /> :
                                                     <Eye size={16} className="text-gray-600" />
                                                 }
                                             </button>
@@ -191,12 +192,17 @@ const SignUpPage = () => {
                                             <label htmlFor="remember" className="ms-2 text-gray-200 font-nunito">Remember Me</label>
                                         </div>
                                         <div>
-                                            <span className="underline cursor-pointer text-gray-200 hover:text-white transition-colors font-nunito">Forgot Password?</span>
+                                            <Link
+                                                href="/account/forgot-password"
+                                                className="underline cursor-pointer text-gray-200 hover:text-white transition-colors font-nunito"
+                                            >
+                                                Forgot Password?
+                                            </Link>
                                         </div>
                                     </div>
 
-                                    <button 
-                                        type="submit" 
+                                    <button
+                                        type="submit"
                                         disabled={isSubmitting}
                                         className="bg-yellow-primary font-bold text-brown-primary w-full h-11 rounded-lg hover:bg-yellow-400 focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition-all text-sm mt-2 font-nunito"
                                     >
