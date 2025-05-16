@@ -31,6 +31,7 @@ export async function PATCH(request: Request) {
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const category = searchParams.get('category');
 
     try {
         if (id) {
@@ -57,7 +58,16 @@ export async function GET(request: Request) {
             return NextResponse.json(product);
         }
 
+        // Build the where clause for filtering
+        const whereClause: any = {};
+        
+        // Add category filter if provided
+        if (category) {
+            whereClause.category = category;
+        }
+
         const products = await prisma.product.findMany({
+            where: whereClause,
             orderBy: {
                 id: 'asc',
             },

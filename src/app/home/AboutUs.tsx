@@ -16,10 +16,10 @@ const AboutUs = () => {
                     {/* Left Column - Text */}
                     <div className="text-black space-y-6">
                         <p className="leading-relaxed">
-                            Lorem ipsum dolor sit amet consectetur. Scelerisque urna vel sit dolor fringilla volutpat lectus amet. Integer sed pretium odio lectus at malesuada sed eget nunc. Viverra malesuada viverra id vel tortor dui adipiscing.
+                            Welcome to B'Dazzle Cafe, where every cup tells a story. Established with a passion for exceptional coffee and authentic flavors, we've created a warm, inviting space where community and quality come together. Our skilled baristas craft each beverage with precision and care, using ethically sourced beans from renowned coffee regions around the world.
                         </p>
                         <p className="leading-relaxed">
-                            Lorem ipsum dolor sit amet consectetur. Scelerisque urna vel sit dolor fringilla volutpat lectus amet. Integer sed pretium odio lectus at malesuada sed eget nunc. Viverra malesuada viverra id vel tortor dui adipiscing.
+                            Beyond our signature espresso drinks and specialty coffees, we take pride in our delicious menu of freshly prepared food items. From hearty breakfast options to satisfying lunch meals and tempting pastries, we ensure each dish complements the coffee experience perfectly. At B'Dazzle Cafe, we believe in creating moments of joy and connection, one perfectly brewed cup at a time.
                         </p>
                         <button className="mt-8 bg-brown-primary hover:bg-brown-primary-hover text-white py-3 px-10  flex rounded-tr-[30]   rounded-bl-[30] items-center justify-between w-48 transition-colors">
                             <span className="font-playfair text-lg">Read More</span>

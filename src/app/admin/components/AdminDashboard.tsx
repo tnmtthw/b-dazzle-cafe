@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -22,11 +22,22 @@ import {
   Plus,
   Calendar
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { useDasboard, useRecent } from "@/data/dashboard";
 import { Order } from '@/lib/type';
 
 const AdminDashboard = () => {
+  const router = useRouter();
+  
+  // Function to navigate to product control and open add modal
+  const handleAddProduct = () => {
+    // Store the action in localStorage to trigger modal opening
+    localStorage.setItem('productAction', 'add');
+    // Navigate to product control page
+    router.push('/admin/productcontrol');
+  };
+
   // Safely get data with null fallbacks
   const { data: countData } = useDasboard() || { data: null };
   const { data: recentData } = useRecent() || { data: null };
@@ -123,13 +134,13 @@ const AdminDashboard = () => {
               <BarChart3 className="h-4 w-4 mr-2" />
               <span>View Sales Report</span>
             </Link>
-            <Link
-              href="/admin/productcontrol/add"
+            <button
+              onClick={handleAddProduct}
               className="px-4 py-2 bg-yellow-primary text-brown-primary rounded-lg flex items-center hover:bg-yellow-400 transition-colors"
             >
               <Plus className="h-4 w-4 mr-2" />
               <span>Add Product</span>
-            </Link>
+            </button>
           </div>
         </div>
       </div>

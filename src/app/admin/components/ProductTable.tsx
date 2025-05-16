@@ -52,6 +52,17 @@ const ProductTable: React.FC = () => {
   // Fetch product data
   const { data: products, error, isLoading, mutate } = useProduct();
 
+  // Check localStorage on component mount to see if we should open add modal
+  useEffect(() => {
+    const productAction = localStorage.getItem('productAction');
+    if (productAction === 'add') {
+      // Clear the localStorage item
+      localStorage.removeItem('productAction');
+      // Open the add product modal
+      handleAddProduct();
+    }
+  }, []);
+
   // Handle opening add product modal
   const handleAddProduct = () => {
     setModalType('add');
@@ -191,6 +202,19 @@ const ProductTable: React.FC = () => {
     'Snacks',
     'Pasta'
   ];
+
+  // Get category ID from category name for the link to products page
+  const getCategoryId = (categoryName: string): string => {
+    const categoryMap: {[key: string]: string} = {
+      'Espresso': 'espresso',
+      'Non Espresso': 'non-espresso',
+      'Classic hot': 'classic-hot',
+      'Rice Meals': 'rice-meals',
+      'Snacks': 'snacks',
+      'Pasta': 'pasta'
+    };
+    return categoryMap[categoryName] || categoryName.toLowerCase();
+  };
 
   // Apply filters and sorting
   const filteredAndSortedProducts = products ? [...products]
@@ -475,6 +499,13 @@ const ProductTable: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {product.category}
+                      <button 
+                        onClick={() => window.open(`/products?category=${encodeURIComponent(getCategoryId(product.category))}`, '_blank')}
+                        className="ml-2 text-xs text-blue-600 hover:text-blue-800"
+                        title="View in store"
+                      >
+                        (View)
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       ₱{product.price.toFixed(2)}
