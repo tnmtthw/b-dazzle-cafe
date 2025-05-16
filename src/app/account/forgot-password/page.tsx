@@ -55,35 +55,32 @@ const ForgotPasswordPage = () => {
     try {
       // Show loading toast
       const loadingToast = toast.loading("Processing your request...");
-      
+
       // Call our API to send the reset email
-      const response = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
+      const response = await fetch(`/api/auth/forgot-password?email=${values.email}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email: values.email
-        }),
       });
-      
+
       // Dismiss loading toast
       toast.dismiss(loadingToast);
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to send reset email');
       }
-      
+
       // Show success toast
       toast.success("Reset link sent to your email");
-      
+
       // Save email for potential use in other steps
       setEmail(values.email);
-      
+
       // Move to the next step
       setResetStep(ResetStep.EMAIL_SENT);
-      
+
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
     }
@@ -94,19 +91,19 @@ const ForgotPasswordPage = () => {
     try {
       // Show loading toast
       const loadingToast = toast.loading("Updating your password...");
-      
+
       // For frontend-only demo, we'll simulate the API call with a timeout
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Dismiss loading toast
       toast.dismiss(loadingToast);
-      
+
       // Show success toast
       toast.success("Password updated successfully");
-      
+
       // Move to the success step
       setResetStep(ResetStep.SUCCESS);
-      
+
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
     }
@@ -174,33 +171,33 @@ const ForgotPasswordPage = () => {
             <div className="inline-block p-4 bg-yellow-primary/20 rounded-full mb-4">
               <Mail className="h-8 w-8 text-yellow-primary" />
             </div>
-            
+
             <h3 className="text-white text-lg font-bold mb-3">Check your email</h3>
-            
+
             <p className="text-white/80 text-sm mb-6">
-              We've sent a password reset link to <span className="text-white font-medium">{email}</span>. 
+              We've sent a password reset link to <span className="text-white font-medium">{email}</span>.
               Please check your inbox and follow the link to reset your password.
             </p>
-            
+
             <p className="text-yellow-primary text-sm mb-8">
               The link will expire in 30 minutes.
             </p>
-            
+
             {/* For demo purposes only - allows us to view the password reset screen */}
-            <button
+            {/* <button
               onClick={handleMockResetLink}
               className="text-white/60 text-sm underline hover:text-white mb-6 font-nunito"
             >
               (Demo: Click here to simulate clicking the email link)
-            </button>
-            
+            </button> */}
+
             <button
               onClick={() => setResetStep(ResetStep.REQUEST_RESET)}
               className="bg-transparent border border-white/30 text-white w-full h-11 rounded-lg hover:bg-white/10 focus:ring-2 focus:ring-white focus:ring-opacity-30 transition-all text-sm font-nunito mb-3"
             >
               Use a different email
             </button>
-            
+
             <button
               onClick={() => router.push('/account/sign-in')}
               className="bg-transparent text-white/70 hover:text-white text-sm transition-colors font-nunito"
@@ -296,13 +293,13 @@ const ForgotPasswordPage = () => {
             <div className="inline-block p-4 bg-green-500/20 rounded-full mb-4">
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
-            
+
             <h3 className="text-white text-lg font-bold mb-3">Password Reset Complete</h3>
-            
+
             <p className="text-white/80 text-sm mb-8">
               Your password has been successfully reset. You can now sign in with your new password.
             </p>
-            
+
             <button
               onClick={() => router.push('/account/sign-in')}
               className="bg-yellow-primary font-bold text-brown-primary w-full h-11 rounded-lg hover:bg-yellow-400 focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition-all text-sm font-nunito"
@@ -324,7 +321,7 @@ const ForgotPasswordPage = () => {
           color: '#fff',
         }
       }} />
-      
+
       <div className="w-full max-w-md mx-auto px-8 pt-6">
         <div className="bg-brown-primary rounded-3xl shadow-2xl overflow-hidden">
           <div className="p-8">
@@ -332,7 +329,7 @@ const ForgotPasswordPage = () => {
             <div className="flex justify-center mb-6">
               <img src="/img/logo.png" alt="B'Dazzle Cafe" className="h-12 w-auto" />
             </div>
-            
+
             {/* Title */}
             <h2 className="text-2xl font-bold text-white text-center mb-6">
               {resetStep === ResetStep.REQUEST_RESET && "Forgot Password"}
@@ -340,12 +337,12 @@ const ForgotPasswordPage = () => {
               {resetStep === ResetStep.RESET_PASSWORD && "Reset Your Password"}
               {resetStep === ResetStep.SUCCESS && "Success!"}
             </h2>
-            
+
             {/* Dynamic content based on step */}
             {renderStepContent()}
           </div>
         </div>
-        
+
         <div className="text-center mt-6 text-white/60 text-sm">
           <p>
             Need help? <Link href="/contact" className="text-yellow-primary hover:text-yellow-300">Contact Support</Link>

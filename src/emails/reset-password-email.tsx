@@ -15,13 +15,13 @@ import {
 import * as React from 'react';
 
 interface ResetPasswordEmailProps {
-  name: string;
-  resetLink: string;
+  email: string;
+  resetToken: string;
 }
 
 export const ResetPasswordEmail = ({
-  name,
-  resetLink,
+  email,
+  resetToken,
 }: ResetPasswordEmailProps) => (
   <Html>
     <Head />
@@ -39,7 +39,7 @@ export const ResetPasswordEmail = ({
         />
         <Heading style={h1}>Password Reset Request</Heading>
         <Text style={text}>
-          Hello {name},
+          Hello {email},
         </Text>
         <Text style={text}>
           We received a request to reset your password for your B'Dazzle Cafe account. If you didn't make this request, you can safely ignore this email.
@@ -48,15 +48,17 @@ export const ResetPasswordEmail = ({
           To reset your password, click the button below. This link will expire in 30 minutes.
         </Text>
         <Section style={buttonContainer}>
-          <Button style={button} href={resetLink}>
+          {/* <Link style={button} href={`https://b-dazzle-cafe.vercel.app/account/reset-password/${resetToken}`}> */}
+          <Link style={button} href={`http://localhost:3000/account/reset-password/${resetToken}`}>
             Reset your password
-          </Button>
+          </Link>
         </Section>
         <Text style={text}>
           If you're having trouble clicking the button, copy and paste the URL below into your web browser:
         </Text>
         <Text style={text}>
-          <Link href={resetLink} style={link}>{resetLink}</Link>
+          {/* <Link href={resetToken} style={link}>{`https://b-dazzle-cafe.vercel.app/account/reset-password/${resetToken}`}</Link> */}
+          <Link href={resetToken} style={link}>{`http://localhost:3000/account/reset-password/${resetToken}`}</Link>
         </Text>
         <Text style={text}>
           Thank you for choosing B'Dazzle Cafe!

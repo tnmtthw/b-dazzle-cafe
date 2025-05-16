@@ -16,6 +16,7 @@ model User {
   phone       String?
   bio         String?
   address     String?
+  resetToken  String?      @unique
   createdAt   DateTime     @default(now())
 
   cartItems CartItem[]

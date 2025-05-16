@@ -1,61 +1,40 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { hash } from 'bcryptjs';
+
 import { prisma } from '@/lib/prisma';
-import * as bcrypt from 'bcryptjs';
 
-export async function POST(req: NextRequest) {
+export async function PATCH(request: Request) {
   try {
-    const { token, email, password } = await req.json();
+    const { searchParams } = new URL(request.url);
+    const resetToken = searchParams.get('resetToken');
 
-    if (!token || !email || !password) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!resetToken) {
+      return NextResponse.json({ error: 'Reset token is required' }, { status: 400 });
     }
 
-    // Find user by email
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() }
+      where: { resetToken },
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'Invalid or expired reset token' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid or expired reset token' }, { status: 404 });
     }
 
-    // Find the password reset record
-    const resetRecord = await prisma.passwordResetToken.findFirst({
-      where: {
-        userId: user.id,
-        token: token,
-        expiresAt: {
-          gt: new Date() // Token must not be expired
-        }
-      }
-    });
+    const { password } = await request.json();
 
-    if (!resetRecord) {
-      return NextResponse.json({ error: 'Invalid or expired reset token' }, { status: 400 });
-    }
+    const hashedPassword = await hash(password, 12);
 
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Update the user's password
     await prisma.user.update({
       where: { id: user.id },
       data: {
         password: hashedPassword,
-      }
+        resetToken: null,
+      },
     });
 
-    // Delete all reset tokens for this user
-    await prisma.passwordResetToken.deleteMany({
-      where: { userId: user.id }
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Password has been reset successfully'
-    });
+    return NextResponse.json({ message: 'Reset password success' }, { status: 200 });
   } catch (error) {
-    console.error('Password reset error:', error);
+    console.error('Error resetting password:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}

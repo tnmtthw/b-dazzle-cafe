@@ -1,110 +1,72 @@
-import { NextRequest, NextResponse } from 'next/server';
+// src\app\api\auth\forgot-password\route.ts
+
+import { NextResponse } from 'next/server';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
+import { render } from '@react-email/render';
+
 import { prisma } from '@/lib/prisma';
-import { randomBytes } from 'crypto';
+import { ResetPasswordEmail } from '@/emails/reset-password-email';
 
-// Send password reset email using an email service API
-async function sendPasswordResetEmail(name: string, email: string, resetUrl: string) {
+export async function PATCH(request: Request) {
   try {
-    // Prepare email content with proper formatting and structure to reduce spam likelihood
-    const htmlContent = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #8B5A2B;">Hello ${name},</h2>
-      <p>You requested to reset your password for your B'Dazzle Cafe account.</p>
-      <p>Please click the button below to reset your password:</p>
-      <p style="text-align: center;">
-        <a href="${resetUrl}" style="background-color: #F5C518; color: #8B5A2B; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Reset Password</a>
-      </p>
-      <p><small>This link will expire in 30 minutes.</small></p>
-      <p>If you did not request a password reset, please ignore this email.</p>
-      <p>Thank you,<br>B'Dazzle Cafe Team</p>
-    </div>`;
-
-    // Use a more reliable email sending approach
-    // Option 1: Email service API (recommended)
-    const response = await fetch(process.env.EMAIL_API_ENDPOINT || 'https://api.youremailservice.com/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.EMAIL_API_KEY}`
-      },
-      body: JSON.stringify({
-        to: email,
-        from: {
-          email: process.env.EMAIL_FROM || 'no-reply@bdazzlecafe.com',
-          name: 'B-Dazzle Cafe'
-        },
-        subject: "Reset Your Password - B'Dazzle Cafe",
-        text: `Hello ${name},\n\nYou requested to reset your password. Please click the link below to reset it:\n\n${resetUrl}\n\nThis link will expire in 30 minutes.\n\nIf you did not request this, please ignore this email.\n\nThank you,\nB'Dazzle Cafe Team`,
-        html: htmlContent
-      })
-    });
-
-    if (!response.ok) {
-      console.error('Password reset email sending failed:', await response.text());
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error sending email:', error);
-    return false;
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const { email } = await req.json();
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get('email');
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    // Find the user by email
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() }
-    });
-
-    // If no user is found, we still return a 200 response for security reasons
-    // This prevents attackers from determining which emails exist in our system
-    if (!user) {
-      return NextResponse.json({ 
-        success: true, 
-        message: 'If your email exists in our system, you will receive a password reset link.' 
-      });
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (!existingUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Generate a reset token (32 random bytes as hex string - 64 chars)
-    const token = randomBytes(32).toString('hex');
-    
-    // Set token expiration (30 minutes from now)
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 30);
+    const resetToken = crypto.randomBytes(32).toString('hex');
 
-    // Save the reset token in the database
-    await prisma.passwordResetToken.upsert({
-      where: { userId: user.id },
-      update: {
-        token,
-        expiresAt
+    const emailHtml = await render(
+      ResetPasswordEmail({
+        email,
+        resetToken
+      })
+    );
+
+    // Update user with reset token
+    await prisma.user.update({
+      where: { email },
+      data: { resetToken },
+    });
+
+    // Ensure required env vars exist
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailPass = process.env.GMAIL_PASSWORD;
+
+    if (!gmailUser || !gmailPass) {
+      return NextResponse.json({ error: 'Email service not configured' }, { status: 500 });
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: gmailUser,
+        pass: gmailPass,
       },
-      create: {
-        userId: user.id,
-        token,
-        expiresAt
-      }
     });
 
-    // Generate the reset URL
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/account/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+    const mailOptions = {
+      from: gmailUser,
+      to: email,
+      subject: 'Reset your B-Dazzle Cafe password',
+      html: emailHtml,
+    };
 
-    // Send password reset email
-    await sendPasswordResetEmail(user.name, email, resetUrl);
+    const info = await transporter.sendMail(mailOptions);
+    
+    console.log('Reset password email sent:', info.messageId);
 
-    return NextResponse.json({
-      success: true,
-      message: 'Password reset email sent successfully'
-    });
+    return NextResponse.json({ message: 'Reset token sent to email' }, { status: 200 });
   } catch (error) {
-    console.error('Password reset request error:', error);
+    console.error('Error in forgot-password PATCH:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}
