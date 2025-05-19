@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { X, DollarSign, ImagePlus, PhilippinePeso } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, ImagePlus, PhilippinePeso, Upload, Loader2 } from 'lucide-react';
 import { Product } from "@/lib/type";
 
 interface ProductModalProps {
@@ -35,6 +35,12 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imagePreview, setImagePreview] = useState<string>('/img/products/coffee.png');
 
+  // File upload states
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Categories
   const categories = [
     'Espresso',
@@ -66,6 +72,11 @@ const ProductModal: React.FC<ProductModalProps> = ({
       setFormData(initialFormData);
       setImagePreview('/img/products/coffee.png');
     }
+
+    // Reset file upload state
+    setSelectedFile(null);
+    setIsUploading(false);
+    setUploadProgress(0);
   }, [product, modalType, isOpen]);
 
   // Handle input changes
@@ -111,6 +122,85 @@ const ProductModal: React.FC<ProductModalProps> = ({
     }
   };
 
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files[0]) {
+      const file = files[0];
+
+      // Validate file is an image
+      if (!file.type.match('image.*')) {
+        setErrors({
+          ...errors,
+          file: 'Please select an image file'
+        });
+        return;
+      }
+
+      // Clear any file errors
+      if (errors.file) {
+        setErrors({
+          ...errors,
+          file: ''
+        });
+      }
+
+      setSelectedFile(file);
+
+      // Create a preview of the selected image
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setImagePreview(e.target.result.toString());
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle file upload to Vercel Blob
+  const uploadFile = async (): Promise<string> => {
+    if (!selectedFile) {
+      return formData.image || '/img/products/coffee.png';
+    }
+
+    try {
+      setIsUploading(true);
+
+      // Generate a unique filename - you might want to use a more robust method
+      const timestamp = new Date().getTime();
+      const safeName = selectedFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
+      const filename = `products/${timestamp}-${safeName}`;
+
+      // Create a FormData instance for upload
+      const response = await fetch(`/api/upload?filename=${filename}`, {
+        method: 'POST',
+        body: selectedFile,
+        // Optional: track upload progress with extra configuration
+        // Not supported in all browsers
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const blob = await response.json();
+      setIsUploading(false);
+      setUploadProgress(100);
+
+      // Return the URL from the Vercel Blob
+      return blob.url;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      setIsUploading(false);
+      setErrors({
+        ...errors,
+        file: 'Failed to upload image. Please try again.'
+      });
+      return formData.image || '/img/products/coffee.png';
+    }
+  };
+
   // Validate form before submission
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -132,11 +222,32 @@ const ProductModal: React.FC<ProductModalProps> = ({
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (validateForm()) {
-      onSave(formData);
+      try {
+        // If there's a file selected, upload it
+        if (selectedFile) {
+          const imageUrl = await uploadFile();
+          // Update the form data with the uploaded image URL
+          setFormData({
+            ...formData,
+            image: imageUrl
+          });
+          // Save the product with the new image URL
+          onSave({
+            ...formData,
+            image: imageUrl
+          });
+        } else {
+          // No file to upload, just save the form data
+          onSave(formData);
+        }
+      } catch (error) {
+        console.error('Error during product save:', error);
+        // Handle the error appropriately
+      }
     }
   };
 
@@ -170,14 +281,44 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Product Image
                 </label>
-                <div className="mt-1 border-2 border-gray-300 border-dashed rounded-md p-2 h-44 flex items-center justify-center">
-                  <img
-                    src={imagePreview}
-                    alt="Product Preview"
-                    className="max-h-40 max-w-full object-contain"
-                    onError={() => setImagePreview('/img/products/coffee.png')}
-                  />
+                <div
+                  className="mt-1 border-2 border-gray-300 border-dashed rounded-md p-2 h-44 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {isUploading ? (
+                    <div className="flex flex-col items-center">
+                      <Loader2 className="h-8 w-8 text-brown-primary animate-spin mb-2" />
+                      <span className="text-sm text-gray-500">Uploading... {uploadProgress}%</span>
+                    </div>
+                  ) : (
+                    <>
+                      <img
+                        src={imagePreview}
+                        alt="Product Preview"
+                        className="max-h-36 max-w-full object-contain"
+                        onError={() => setImagePreview('/img/products/coffee.png')}
+                      />
+                      <div className="mt-2 flex text-sm text-gray-600">
+                        <Upload className="mr-1 h-5 w-5 text-gray-400" />
+                        <p className="pl-1">Click to upload</p>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          className="sr-only"
+                          accept="image/*"
+                          onChange={handleFileSelect}
+                          disabled={isUploading}
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
+                {errors.file && <p className="mt-1 text-sm text-red-600">{errors.file}</p>}
+                {selectedFile && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)
+                  </p>
+                )}
               </div>
 
               <div>
@@ -195,6 +336,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     value={formData.image}
                     onChange={handleImageChange}
                     className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brown-primary focus:border-brown-primary sm:text-sm"
+                    placeholder="Or enter image URL"
                   />
                 </div>
               </div>
@@ -322,14 +464,23 @@ const ProductModal: React.FC<ProductModalProps> = ({
               type="button"
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-primary transition-colors"
+              disabled={isUploading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-brown-primary border border-transparent rounded-md hover:bg-brown-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-primary transition-colors"
+              className="px-4 py-2 text-sm font-medium text-white bg-brown-primary border border-transparent rounded-md hover:bg-brown-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-primary transition-colors flex items-center"
+              disabled={isUploading}
             >
-              {modalType === 'add' ? 'Add Product' : 'Save Changes'}
+              {isUploading ? (
+                <>
+                  <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />
+                  Uploading...
+                </>
+              ) : (
+                modalType === 'add' ? 'Add Product' : 'Save Changes'
+              )}
             </button>
           </div>
         </form>

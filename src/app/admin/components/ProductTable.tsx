@@ -205,7 +205,7 @@ const ProductTable: React.FC = () => {
 
   // Get category ID from category name for the link to products page
   const getCategoryId = (categoryName: string): string => {
-    const categoryMap: {[key: string]: string} = {
+    const categoryMap: { [key: string]: string } = {
       'Espresso': 'espresso',
       'Non Espresso': 'non-espresso',
       'Classic hot': 'classic-hot',
@@ -499,7 +499,7 @@ const ProductTable: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {product.category}
-                      <button 
+                      <button
                         onClick={() => window.open(`/products?category=${encodeURIComponent(getCategoryId(product.category))}`, '_blank')}
                         className="ml-2 text-xs text-blue-600 hover:text-blue-800"
                         title="View in store"
