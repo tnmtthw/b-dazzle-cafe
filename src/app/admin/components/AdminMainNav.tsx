@@ -88,7 +88,7 @@ const AdminMainNav = ({ children }: AdminNavbarProps) => {
     { icon: <ShoppingCart size={20} />, name: 'Orders', href: '/admin/orders', badge: data?.orders },
     { icon: <Users size={20} />, name: 'User', href: '/admin/Users', badge: data?.users },
     // { icon: <BarChart3 size={20} />, name: 'Analytics', href: '/admin/analytics' },
-    { icon: <Settings size={20} />, name: 'Settings', href: '/admin/settings' },
+    // { icon: <Settings size={20} />, name: 'Settings', href: '/admin/settings' },
   ];
 
   // Mock notifications
@@ -102,10 +102,10 @@ const AdminMainNav = ({ children }: AdminNavbarProps) => {
   const getCurrentPageTitle = (): string => {
     if (pathname === '/admin') return 'Dashboard';
     if (pathname?.includes('/productcontrol')) return 'Product Management';
-    if (pathname?.includes('/orders')) return 'Orders';
-    if (pathname?.includes('/customers')) return 'Customers';
-    if (pathname?.includes('/analytics')) return 'Analytics';
-    if (pathname?.includes('/settings')) return 'Settings';
+    // if (pathname?.includes('/orders')) return 'Orders';
+    // if (pathname?.includes('/customers')) return 'Customers';
+    // if (pathname?.includes('/analytics')) return 'Analytics';
+    // if (pathname?.includes('/settings')) return 'Settings';
     return 'Admin Panel';
   };
 
@@ -238,7 +238,7 @@ const AdminMainNav = ({ children }: AdminNavbarProps) => {
 
               {/* Notifications */}
               <div className="relative">
-                <button
+                {/* <button
                   id="notifications-toggler"
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
                   className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
@@ -247,7 +247,7 @@ const AdminMainNav = ({ children }: AdminNavbarProps) => {
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                     {notifications.filter(n => !n.read).length}
                   </span>
-                </button>
+                </button> */}
 
                 {/* Notifications Dropdown */}
                 {notificationsOpen && (
@@ -319,13 +319,13 @@ const AdminMainNav = ({ children }: AdminNavbarProps) => {
                         <span>Your Profile</span>
                       </Link>
 
-                      <Link
+                      {/* <Link
                         href="/admin/settings"
                         className="flex items-center px-4 py-2 hover:bg-gray-100 text-gray-700"
                       >
                         <Settings className="w-4 h-4 mr-2" />
                         <span>Settings</span>
-                      </Link>
+                      </Link> */}
                     </div>
 
                     <div className="py-1 border-t border-gray-200">
@@ -344,16 +344,16 @@ const AdminMainNav = ({ children }: AdminNavbarProps) => {
           </div>
 
           {/* Secondary Navigation - Context Tabs */}
-          {getCurrentPageTitle() === 'Product Management' && (
+          {/* {getCurrentPageTitle() === 'Product Management' && (
             <div className="mt-4 border-b border-gray-200 -mx-6 px-6">
-              <nav className="flex -mb-px space-x-6 overflow-x-auto hide-scrollbar">
-                <button className="px-1 pb-3 border-b-2 border-brown-primary text-brown-primary font-medium">All Products</button>
+           <nav className="flex -mb-px space-x-6 overflow-x-auto hide-scrollbar">
+                 <button className="px-1 pb-3 border-b-2 border-brown-primary text-brown-primary font-medium">All Products</button>
                 <button className="px-1 pb-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Categories</button>
-                <button className="px-1 pb-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Inventory</button>
-                <button className="px-1 pb-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Analytics</button>
-              </nav>
+                <button className="px-1 pb-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Inventory</button> 
+              <button className="px-1 pb-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Analytics</button> 
+            </nav> 
             </div>
-          )}
+          )} */}
         </header>
 
         {/* Page Content */}
@@ -365,8 +365,8 @@ const AdminMainNav = ({ children }: AdminNavbarProps) => {
         <footer className="py-4 px-6 bg-white border-t border-gray-200 text-center text-sm text-gray-500">
           <p>© 2025 B'Dazzle Cafe Admin. All rights reserved.</p>
         </footer>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

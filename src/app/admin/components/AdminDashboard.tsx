@@ -24,12 +24,12 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { useDasboard, useRecent } from "@/data/dashboard";
+import { useDasboard, useRecent, useTopOrder } from "@/data/dashboard";
 import { Order } from '@/lib/type';
 
 const AdminDashboard = () => {
   const router = useRouter();
-  
+
   // Function to navigate to product control and open add modal
   const handleAddProduct = () => {
     // Store the action in localStorage to trigger modal opening
@@ -41,6 +41,7 @@ const AdminDashboard = () => {
   // Safely get data with null fallbacks
   const { data: countData } = useDasboard() || { data: null };
   const { data: recentData } = useRecent() || { data: null };
+  const { data: TopOrderData } = useTopOrder() || { data: null };
 
   // Set default values if data is undefined
   const count = countData || {
@@ -87,22 +88,16 @@ const AdminDashboard = () => {
   ];
 
   // Top products mock data
-  const topProducts = [
-    { name: 'Cappuccino', sold: 42, revenue: '₱5,040' },
-    { name: 'Caramel Macchiato', sold: 38, revenue: '₱4,940' },
-    { name: 'Espresso', sold: 35, revenue: '₱3,150' },
-    { name: 'Café Mocha', sold: 29, revenue: '₱3,770' },
-    { name: 'Caffè Latte', sold: 27, revenue: '₱3,240' },
-  ];
+  const topProducts = Array.isArray(TopOrderData) ? TopOrderData : [];
 
   // Recent activity mock data
-  const recentActivity = [
-    { type: 'order', message: 'New order #ORD-006 received', time: '10 minutes ago', icon: <ShoppingCart className="h-5 w-5 text-blue-500" /> },
-    { type: 'payment', message: 'Payment of ₱432 processed for order #ORD-004', time: '25 minutes ago', icon: <CreditCard className="h-5 w-5 text-green-500" /> },
-    { type: 'stock', message: 'Cappuccino stock is running low', time: '1 hour ago', icon: <Coffee className="h-5 w-5 text-amber-500" /> },
-    { type: 'customer', message: 'New customer Maria Garcia registered', time: '2 hours ago', icon: <Users className="h-5 w-5 text-purple-500" /> },
-    { type: 'order', message: 'Order #ORD-003 has been completed', time: '3 hours ago', icon: <Package className="h-5 w-5 text-green-500" /> },
-  ];
+  // const recentActivity = [
+  //   { type: 'order', message: 'New order #ORD-006 received', time: '10 minutes ago', icon: <ShoppingCart className="h-5 w-5 text-blue-500" /> },
+  //   { type: 'payment', message: 'Payment of ₱432 processed for order #ORD-004', time: '25 minutes ago', icon: <CreditCard className="h-5 w-5 text-green-500" /> },
+  //   { type: 'stock', message: 'Cappuccino stock is running low', time: '1 hour ago', icon: <Coffee className="h-5 w-5 text-amber-500" /> },
+  //   { type: 'customer', message: 'New customer Maria Garcia registered', time: '2 hours ago', icon: <Users className="h-5 w-5 text-purple-500" /> },
+  //   { type: 'order', message: 'Order #ORD-003 has been completed', time: '3 hours ago', icon: <Package className="h-5 w-5 text-green-500" /> },
+  // ];
 
   // Recent orders data with fallback
   const recentOrders = recentData || [];
@@ -285,7 +280,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          {/* <div className="bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-medium text-gray-800">Recent Activity</h2>
             </div>
@@ -309,7 +304,7 @@ const AdminDashboard = () => {
             <div className="px-6 py-3 border-t border-gray-100 text-center">
               <button className="text-sm text-blue-600 hover:text-blue-800">View All Activities</button>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

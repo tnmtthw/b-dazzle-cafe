@@ -31,3 +31,14 @@ export function useRecent() {
     mutate
   };
 }
+
+export function useTopOrder() {
+  const { data, error, isLoading, mutate } = useSWR(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/order/top-product`, fetcher);
+
+  return {
+    data,
+    error,
+    isLoading,
+    mutate
+  };
+}
