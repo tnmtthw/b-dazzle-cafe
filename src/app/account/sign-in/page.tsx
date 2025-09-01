@@ -172,7 +172,7 @@ const SignInPage = () => {
                             )}
                         </Formik>
 
-                        <div className="flex items-center justify-center my-2 relative z-10">
+                        {/* <div className="flex items-center justify-center my-2 relative z-10">
                             <div className="flex-grow border-t border-gray-400 opacity-50"></div>
                             <span className="mx-3 text-xs text-gray-200 font-nunito">OR</span>
                             <div className="flex-grow border-t border-gray-400 opacity-50"></div>
@@ -186,7 +186,7 @@ const SignInPage = () => {
                         <button className="font-nunito relative w-full h-11 border border-white rounded-lg text-white hover:bg-white hover:text-brown-primary transition-all focus:ring-2 focus:ring-white focus:ring-opacity-50 text-sm z-10">
                             <img src="/img/icon/facebook.svg" alt="Facebook" className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" />
                             <span className="block text-center w-full">Continue with Facebook</span>
-                        </button>
+                        </button> */}
                     </div>
                 </div>
             </div>
