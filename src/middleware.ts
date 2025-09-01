@@ -16,7 +16,7 @@ export default auth((req) => {
 
   if (isLoggedIn && isAuthRoute) {
     if (user?.role == "Admin") {
-      return Response.redirect(`${url}/admin`);
+      return Response.redirect(`https://b-dazzle-cafe.vercel.app/admin`);
     } else if (user?.role == "User") {
       return Response.redirect(`${url}/`);
     }
